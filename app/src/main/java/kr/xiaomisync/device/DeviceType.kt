@@ -54,8 +54,8 @@ enum class DeviceType(
     MHO_C303(
         displayName = "전자잉크 시계",
         model = "MHO-C303",
-        description = "시간 맞추기 · 온도/습도 확인",
-        available = false,
+        description = "시간 맞추기 · 온도/습도 · 온도 단위",
+        available = true,
         imageRes = R.drawable.device_mho_c303,
         advertisedNamePrefix = "MHO-C303",
         productIds = setOf(0x06D3),

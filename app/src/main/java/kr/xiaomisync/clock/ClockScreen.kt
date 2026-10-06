@@ -1,4 +1,4 @@
-package kr.xiaomisync.lywsd02
+package kr.xiaomisync.clock
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,7 +42,7 @@ import java.util.TimeZone
 /* ===================== 화면 전체 ===================== */
 
 @Composable
-fun Lywsd02Screen(viewModel: Lywsd02ViewModel, onBack: () -> Unit) {
+fun ClockScreen(type: DeviceType, viewModel: ClockViewModel, onBack: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
@@ -70,26 +70,26 @@ fun Lywsd02Screen(viewModel: Lywsd02ViewModel, onBack: () -> Unit) {
             .padding(Tokens.gapM),
         verticalArrangement = Arrangement.spacedBy(Tokens.gapM),
     ) {
-        DeviceHeader(title = "블루투스 디지털 시계", model = "LYWSD02", onBack = onBack)
+        DeviceHeader(title = type.displayName, model = type.model, onBack = onBack)
         StepIndicator(
             steps = DEVICE_FLOW_STEPS,
-            currentIndex = if (state.step == Lywsd02Step.CONNECTED) 2 else 1,
+            currentIndex = if (state.step == ClockStep.CONNECTED) 2 else 1,
         )
         state.message?.let {
             MessageBanner(text = it.text, isError = it.isError, onClose = viewModel::dismissMessage)
         }
         when (state.step) {
-            Lywsd02Step.FIND -> FindDeviceSection(
+            ClockStep.FIND -> FindDeviceSection(
                 noun = "시계",
                 scanning = state.scanning,
                 foundDevices = state.foundDevices,
                 onFindClick = onFindClick,
                 onStopClick = viewModel::stopScan,
                 onConnectClick = viewModel::connect,
-                variantLabel = DeviceType.LYWSD02::variantName,
+                variantLabel = type::variantName,
             )
-            Lywsd02Step.CONNECTING -> SectionCard { BusyRow("${state.connectedName}에 연결하는 중… (최대 15초)") }
-            Lywsd02Step.CONNECTED -> ConnectedSection(state, viewModel)
+            ClockStep.CONNECTING -> SectionCard { BusyRow("${state.connectedName}에 연결하는 중… (최대 15초)") }
+            ClockStep.CONNECTED -> ConnectedSection(state, viewModel)
         }
     }
 }
@@ -97,7 +97,7 @@ fun Lywsd02Screen(viewModel: Lywsd02ViewModel, onBack: () -> Unit) {
 /* ===================== ③ 동기화 ===================== */
 
 @Composable
-private fun ConnectedSection(state: Lywsd02UiState, viewModel: Lywsd02ViewModel) {
+private fun ConnectedSection(state: ClockUiState, viewModel: ClockViewModel) {
     val isBusy = state.busyText != null
 
     SectionCard {
@@ -146,7 +146,7 @@ private fun ClockCard(clock: DeviceClock?) {
 }
 
 @Composable
-private fun SensorCard(state: Lywsd02UiState) {
+private fun SensorCard(state: ClockUiState) {
     SectionCard {
         Text("시계 센서 값", style = SectionStyle)
         val sensor = state.sensor

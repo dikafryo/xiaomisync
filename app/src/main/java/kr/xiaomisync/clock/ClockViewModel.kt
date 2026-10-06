@@ -1,4 +1,4 @@
-package kr.xiaomisync.lywsd02
+package kr.xiaomisync.clock
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -20,12 +20,12 @@ import kotlinx.coroutines.launch
 
 /* ===================== 화면 상태 ===================== */
 
-enum class Lywsd02Step { FIND, CONNECTING, CONNECTED }
+enum class ClockStep { FIND, CONNECTING, CONNECTED }
 
 data class UiMessage(val text: String, val isError: Boolean)
 
-data class Lywsd02UiState(
-    val step: Lywsd02Step = Lywsd02Step.FIND,
+data class ClockUiState(
+    val step: ClockStep = ClockStep.FIND,
     val scanning: Boolean = false,
     val foundDevices: List<FoundDevice> = emptyList(),
     val connectedName: String = "",
@@ -39,10 +39,11 @@ data class Lywsd02UiState(
 
 /* ===================== 동작 ===================== */
 
-class Lywsd02ViewModel(app: Application) : AndroidViewModel(app) {
+/** 시계 공통 화면 상태 (LYWSD02, MHO-C303). [type] 으로 찾을 기기를 가린다. */
+class ClockViewModel(app: Application, private val type: DeviceType) : AndroidViewModel(app) {
 
-    private val _state = MutableStateFlow(Lywsd02UiState())
-    val state: StateFlow<Lywsd02UiState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(ClockUiState())
+    val state: StateFlow<ClockUiState> = _state.asStateFlow()
 
     private val scanner = BleScanner(app)
     private var scanTimeoutJob: Job? = null
@@ -85,7 +86,7 @@ class Lywsd02ViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun addFoundDevice(found: FoundDevice) {
-        if (!DeviceType.LYWSD02.matches(found)) return
+        if (!type.matches(found)) return
         _state.update { current ->
             // 같은 기기는 신호 세기만 새로 고쳐 한 줄로 유지
             val others = current.foundDevices.filterNot { it.address == found.address }
@@ -98,7 +99,7 @@ class Lywsd02ViewModel(app: Application) : AndroidViewModel(app) {
     fun connect(found: FoundDevice) {
         stopScan()
         _state.update {
-            it.copy(step = Lywsd02Step.CONNECTING, connectedName = found.name, message = null)
+            it.copy(step = ClockStep.CONNECTING, connectedName = found.name, message = null)
         }
         viewModelScope.launch {
             val newSession = GattSession(getApplication(), found.device)
@@ -106,13 +107,13 @@ class Lywsd02ViewModel(app: Application) : AndroidViewModel(app) {
                 newSession.connect()
             } catch (e: BleException) {
                 newSession.close()
-                _state.update { it.copy(step = Lywsd02Step.FIND) }
+                _state.update { it.copy(step = ClockStep.FIND) }
                 showError(e.message ?: "기기에 연결하지 못했습니다.")
                 return@launch
             }
             session = newSession
             client = Lywsd02Client(newSession)
-            _state.update { it.copy(step = Lywsd02Step.CONNECTED) }
+            _state.update { it.copy(step = ClockStep.CONNECTED) }
             watchDisconnect(newSession)
             refreshAll()
         }
@@ -122,7 +123,7 @@ class Lywsd02ViewModel(app: Application) : AndroidViewModel(app) {
         session?.close()
         session = null
         client = null
-        _state.value = Lywsd02UiState()
+        _state.value = ClockUiState()
     }
 
     private fun watchDisconnect(watched: GattSession) {
@@ -137,19 +138,32 @@ class Lywsd02ViewModel(app: Application) : AndroidViewModel(app) {
     /* ----- ③ 읽기 · 시간 맞추기 ----- */
 
     /**
-     * 시간 → 배터리 → 단위 → 온습도 순서로 읽는다. 각 값은 읽히는 대로 화면에 바로 반영한다.
-     * 온습도는 알림을 기다려야 해서 가장 잘 실패하므로 마지막에 둔다 — 실패해도 시간 맞추기는 쓸 수 있다.
+     * 시간을 먼저 읽고, 배터리 → 단위 → 온습도는 하나씩 따로 읽는다. 읽히는 값은 바로 화면에 반영한다.
+     * 기종에 따라 없는 항목이 있을 수 있어(예: MHO-C303) 하나가 실패해도 나머지와 시간 맞추기는 그대로 쓴다.
      */
     fun refreshAll() = runWithClient("시계 정보를 읽는 중…") { device ->
         val clock = device.readClock()
         _state.update { it.copy(clock = clock) }
-        val battery = device.readBattery()
-        _state.update { it.copy(battery = battery) }
-        val unit = device.readUnit()
-        _state.update { it.copy(unit = unit) }
-        val sensor = device.readSensor()
-        _state.update { it.copy(sensor = sensor) }
+
+        val failed = mutableListOf<String>()
+        readOptional("배터리", failed) { device.readBattery() }
+            ?.let { battery -> _state.update { it.copy(battery = battery) } }
+        readOptional("온도 단위", failed) { device.readUnit() }
+            ?.let { unit -> _state.update { it.copy(unit = unit) } }
+        readOptional("온도·습도", failed) { device.readSensor() }
+            ?.let { sensor -> _state.update { it.copy(sensor = sensor) } }
+        if (failed.isNotEmpty()) {
+            showError("${failed.joinToString(" · ")} 값을 읽지 못했습니다. 시계 시간 맞추기는 그대로 쓸 수 있습니다.")
+        }
     }
+
+    private suspend fun <T> readOptional(label: String, failed: MutableList<String>, read: suspend () -> T): T? =
+        try {
+            read()
+        } catch (e: BleException) {
+            failed += label
+            null
+        }
 
     fun syncClock() = runWithClient("시간을 맞추는 중…") { device ->
         device.syncClockToPhone()

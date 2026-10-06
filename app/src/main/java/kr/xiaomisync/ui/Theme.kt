@@ -27,7 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kr.xiaomisync.lywsd02.DeviceClock
+import kr.xiaomisync.clock.DeviceClock
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

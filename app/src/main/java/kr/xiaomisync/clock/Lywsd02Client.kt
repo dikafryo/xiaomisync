@@ -1,4 +1,4 @@
-package kr.xiaomisync.lywsd02
+package kr.xiaomisync.clock
 
 import kr.xiaomisync.ble.BleException
 import kr.xiaomisync.ble.GattSession
@@ -25,8 +25,9 @@ data class SensorReading(val temperature: Double, val humidity: Int)
 data class DeviceClock(val epochSeconds: Long, val timezoneHours: Int)
 
 /**
- * LYWSD02 시계 전용 명령 모음.
+ * LYWSD02 계열 시계 명령 모음 — LYWSD02 와 MHO-C303 이 같은 서비스(EBE0CCB0)·같은 5바이트 시간 형식을 쓴다.
  * 프로토콜은 https://github.com/h4/lywsd02 (lywsd02/client.py) 를 그대로 옮겼다.
+ * MHO-C303 시간 형식 확인: https://gist.github.com/vtjnash/bb288ffba2a5386f622c1f22d9bae2a3
  * 모든 숫자는 리틀 엔디언(작은 자리 먼저)이다.
  */
 class Lywsd02Client(private val session: GattSession) {

@@ -4,6 +4,7 @@ Mi Home 앱 없이 블루투스로 샤오미 기기에 바로 연결하는 안�
 현재 지원
 - **LYWSD02 블루투스 디지털 시계** (시간 맞추기, 온도/습도, 배터리, 온도 단위 바꾸기)
 - **LYWSDCGQ/01ZM 블루투스 온습도계(둥근형, 이름 `MJ_HT_V1`)** (실시간 온도/습도, 연결 중 최저/최고, 배터리) — 프로토콜 참고 https://github.com/ratcashdev/mitemp
+- **MHO-C303 전자잉크 시계** (LYWSD02 와 같은 명령: 시간 맞추기, 온도/습도, 온도 단위 — 없는 항목은 건너뜀)
 - **LYWSD03MMC 블루투스 온습도계 2** (실시간 온도/습도, 연결 중 최저/최고, 전압으로 계산한 배터리) — 순정 펌웨어 기준, 참고 https://github.com/JsBergbau/MiTemperature2
 - 기기 찾기는 블루투스 이름 또는 샤오미 광고(MiBeacon 0xFE95)의 제품 번호로 한다 → 이름 없이 광고하는 신형(LYWSD02MMC 등)도 목록에 나온다
 
@@ -45,8 +46,8 @@ git push origin main v1.0.1
 | 할 일 | 파일 |
 |---|---|
 | 기기 목록에 추가 (`available = true`) | `device/DeviceType.kt` |
-| 기기 전용 명령(UUID, 데이터 형식) | 예: `lywsd02/Lywsd02Client.kt` 참고 |
-| 기기 전용 화면 + ViewModel | 예: `lywsd02/Lywsd02Screen.kt`, `Lywsd02ViewModel.kt` 참고 |
+| 기기 전용 명령(UUID, 데이터 형식) | 예: `clock/Lywsd02Client.kt`, `thermo/Lywsd03Client.kt` 참고 |
+| 기기 전용 화면 + ViewModel | 시계는 `clock/`, 온습도계는 `thermo/` 공통 화면을 쓰고 클라이언트만 추가 |
 | 화면 연결 | `MainActivity.kt`의 `DeviceScreen()` |
 | 다운로드 페이지의 지원 기기 표 | `/var/services/web/sw4u/devide/index.php` 의 `$devices` |
 

@@ -17,8 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.xiaomisync.device.DeviceType
-import kr.xiaomisync.lywsd02.Lywsd02Screen
-import kr.xiaomisync.lywsd02.Lywsd02ViewModel
+import kr.xiaomisync.clock.ClockScreen
+import kr.xiaomisync.clock.ClockViewModel
 import kr.xiaomisync.thermo.ThermoScreen
 import kr.xiaomisync.thermo.ThermoViewModel
 import kr.xiaomisync.ui.DeviceSelectScreen
@@ -57,16 +57,19 @@ private fun AppNavigation() {
 @Composable
 private fun DeviceScreen(type: DeviceType, onBack: () -> Unit) {
     when (type) {
-        DeviceType.LYWSD02 -> {
-            val lywsd02ViewModel: Lywsd02ViewModel = viewModel()
+        // 시계(LYWSD02, MHO-C303)는 같은 명령·화면을 쓴다 (기기마다 ViewModel 은 따로 — key 로 구분)
+        DeviceType.LYWSD02, DeviceType.MHO_C303 -> {
+            val clockViewModel: ClockViewModel = viewModel(key = type.name) {
+                ClockViewModel(checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]), type)
+            }
             val leave = {
                 // 다른 기기를 고를 수 있게 연결을 정리하고 돌아간다
-                lywsd02ViewModel.stopScan()
-                lywsd02ViewModel.disconnect()
+                clockViewModel.stopScan()
+                clockViewModel.disconnect()
                 onBack()
             }
             BackHandler(onBack = leave)
-            Lywsd02Screen(viewModel = lywsd02ViewModel, onBack = leave)
+            ClockScreen(type = type, viewModel = clockViewModel, onBack = leave)
         }
         // 온습도계는 화면·동작을 함께 쓴다 (기기마다 ViewModel 은 따로 — key 로 구분)
         DeviceType.LYWSDCGQ, DeviceType.LYWSD03MMC -> {

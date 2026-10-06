@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MHO-C303 전자잉크 시계: 받침대 있는 가로형, 날짜 줄 + 시각 (기기 선택 화면용 일러스트, 실제 제품 사진 아님. 생성: 직접 그린 벡터) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <path
+        android:fillColor="#C3C9D1"
+        android:pathData="M44,92h32l6,10h-44z" />
+    <path
+        android:fillColor="#E3E6EA"
+        android:pathData="M24,26h76a5,5 0,0 1,5,5v54a5,5 0,0 1,-5,5h-76a5,5 0,0 1,-5,-5v-54a5,5 0,0 1,5,-5z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#C3C9D1"
+        android:strokeWidth="2"
+        android:pathData="M22,22h76a5,5 0,0 1,5,5v54a5,5 0,0 1,-5,5h-76a5,5 0,0 1,-5,-5v-54a5,5 0,0 1,5,-5z" />
+    <path
+        android:fillColor="#E4E7E1"
+        android:pathData="M25,28h70a2,2 0,0 1,2,2v48a2,2 0,0 1,-2,2h-70a2,2 0,0 1,-2,-2v-48a2,2 0,0 1,2,-2z" />
+    <path
+        android:fillColor="#CFD3CC"
+        android:pathData="M23,28h74v9h-74z" />
+    <path
+        android:fillColor="#2B3036"
+        android:pathData="M49.4,30.6h1.1v1.8h-1.1zM49.4,33.5h1.1v1.8h-1.1zM53.2,29.5h2.3v1.1h-2.3zM55.5,30.6h1.1v1.8h-1.1zM55.5,33.5h1.1v1.8h-1.1zM53.2,35.4h2.3v1.1h-2.3zM52.1,33.5h1.1v1.8h-1.1zM52.1,30.6h1.1v1.8h-1.1zM58.2,35.4h1.1v1.1h-1.1zM61.2,29.5h2.3v1.1h-2.3zM63.5,30.6h1.1v1.8h-1.1zM63.5,33.5h1.1v1.8h-1.1zM61.2,35.4h2.3v1.1h-2.3zM60.1,33.5h1.1v1.8h-1.1zM60.1,30.6h1.1v1.8h-1.1zM67.2,29.5h2.3v1.1h-2.3zM66.2,30.6h1.1v1.8h-1.1zM67.2,32.5h2.3v1.1h-2.3zM66.2,33.5h1.1v1.8h-1.1zM67.2,35.4h2.3v1.1h-2.3zM69.6,33.5h1.1v1.8h-1.1z" />
+    <path
+        android:fillColor="#2B3036"
+        android:pathData="M37.0,41.0h5.8v2.6h-5.8zM42.8,43.6h2.6v6.6h-2.6zM42.8,52.8h2.6v6.6h-2.6zM37.0,59.4h5.8v2.6h-5.8zM34.4,52.8h2.6v6.6h-2.6zM34.4,43.6h2.6v6.6h-2.6zM51.4,41.0h5.8v2.6h-5.8zM57.2,43.6h2.6v6.6h-2.6zM57.2,52.8h2.6v6.6h-2.6zM51.4,59.4h5.8v2.6h-5.8zM48.8,43.6h2.6v6.6h-2.6zM51.4,50.2h5.8v2.6h-5.8zM63.9,46.9h2.6v2.6h-2.6zM63.9,54.0h2.6v2.6h-2.6zM68.6,43.6h2.6v6.6h-2.6zM71.2,50.2h5.8v2.6h-5.8zM77.0,43.6h2.6v6.6h-2.6zM77.0,52.8h2.6v6.6h-2.6zM83.0,43.6h2.6v6.6h-2.6zM83.0,52.8h2.6v6.6h-2.6z" />
+    <path
+        android:fillColor="#2B3036"
+        android:pathData="M34.5,67.0h3.0v1.5h-3.0zM37.5,68.5h1.5v2.8h-1.5zM34.5,71.2h3.0v1.5h-3.0zM33.0,72.8h1.5v2.8h-1.5zM34.5,75.5h3.0v1.5h-3.0zM42.5,67.0h3.0v1.5h-3.0zM45.5,68.5h1.5v2.8h-1.5zM42.5,71.2h3.0v1.5h-3.0zM45.5,72.8h1.5v2.8h-1.5zM42.5,75.5h3.0v1.5h-3.0z" />
+    <path
+        android:fillColor="#2B3036"
+        android:pathData="M74.5,67.0h3.0v1.5h-3.0zM73.0,68.5h1.5v2.8h-1.5zM74.5,71.2h3.0v1.5h-3.0zM77.5,72.8h1.5v2.8h-1.5zM74.5,75.5h3.0v1.5h-3.0zM82.5,67.0h3.0v1.5h-3.0zM85.5,68.5h1.5v2.8h-1.5zM82.5,71.2h3.0v1.5h-3.0zM81.0,72.8h1.5v2.8h-1.5zM82.5,75.5h3.0v1.5h-3.0z" />
+</vector>

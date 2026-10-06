@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LYWSD03MMC 블루투스 온습도계 2: 작은 정사각 LCD, 온도·습도·표정 (기기 선택 화면용 일러스트, 실제 제품 사진 아님. 생성: 직접 그린 벡터) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <path
+        android:fillColor="#E3E6EA"
+        android:pathData="M39,29h46a10,10 0,0 1,10,10v46a10,10 0,0 1,-10,10h-46a10,10 0,0 1,-10,-10v-46a10,10 0,0 1,10,-10z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#C3C9D1"
+        android:strokeWidth="2"
+        android:pathData="M36,25h46a10,10 0,0 1,10,10v46a10,10 0,0 1,-10,10h-46a10,10 0,0 1,-10,-10v-46a10,10 0,0 1,10,-10z" />
+    <path
+        android:fillColor="#DDE3DA"
+        android:pathData="M38,32h42a5,5 0,0 1,5,5v42a5,5 0,0 1,-5,5h-42a5,5 0,0 1,-5,-5v-42a5,5 0,0 1,5,-5z" />
+    <path
+        android:fillColor="#2B3036"
+        android:pathData="M42.9,37.0h4.2v2.4h-4.2zM47.1,39.4h2.4v4.9h-2.4zM42.9,44.3h4.2v2.4h-4.2zM40.5,46.7h2.4v4.9h-2.4zM42.9,51.6h4.2v2.4h-4.2zM52.5,39.4h2.4v4.9h-2.4zM54.9,44.3h4.2v2.4h-4.2zM59.1,39.4h2.4v4.9h-2.4zM59.1,46.7h2.4v4.9h-2.4zM64.5,51.6h2.4v2.4h-2.4zM70.9,37.0h4.2v2.4h-4.2zM68.5,39.4h2.4v4.9h-2.4zM70.9,44.3h4.2v2.4h-4.2zM75.0,46.7h2.4v4.9h-2.4zM70.9,51.6h4.2v2.4h-4.2z" />
+    <path
+        android:fillColor="#2B3036"
+        android:pathData="M62.8,62.8h1.8v2.8h-1.8zM64.5,65.6h2.4v1.8h-2.4zM67.0,62.8h1.8v2.8h-1.8zM67.0,67.4h1.8v2.8h-1.8zM73.0,61.0h2.4v1.8h-2.4zM71.2,62.8h1.8v2.8h-1.8zM73.0,65.6h2.4v1.8h-2.4zM75.5,67.4h1.8v2.8h-1.8zM73.0,70.2h2.4v1.8h-2.4z" />
+    <path
+        android:fillColor="#2B3036"
+        android:pathData="M40,68a5,5 0,1 0,10 0a5,5 0,1 0,-10 0zM42.5,66.5h1.4v1.4h-1.4zM46,66.5h1.4v1.4h-1.4zM42.2,69.5q2.8,2.6 5.6,0l0.6,0.6q-3.4,3.2 -6.8,0z" />
+</vector>

@@ -3,6 +3,7 @@ package kr.xiaomisync.clock
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kr.xiaomisync.ble.DiagLog
 import kr.xiaomisync.ble.BleException
 import kr.xiaomisync.ble.BleScanner
 import kr.xiaomisync.ble.FoundDevice
@@ -189,6 +190,7 @@ class ClockViewModel(app: Application, private val type: DeviceType) : AndroidVi
     }
 
     fun showError(text: String) {
+        DiagLog.add("화면 안내(오류): $text")
         _state.update { it.copy(message = UiMessage(text, isError = true)) }
     }
 

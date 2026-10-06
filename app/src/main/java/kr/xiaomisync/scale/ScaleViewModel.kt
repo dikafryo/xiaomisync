@@ -3,6 +3,7 @@ package kr.xiaomisync.scale
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kr.xiaomisync.ble.DiagLog
 import kr.xiaomisync.ble.BleScanner
 import kr.xiaomisync.ble.FoundDevice
 import kr.xiaomisync.device.DeviceType
@@ -62,6 +63,7 @@ class ScaleViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun showError(text: String) {
+        DiagLog.add("화면 안내(오류): $text")
         _state.update { it.copy(message = text) }
     }
 
@@ -78,6 +80,10 @@ class ScaleViewModel(app: Application) : AndroidViewModel(app) {
             val isNewResult = reading.stable && !reading.removed && reading.weightKg > 0 &&
                 (last == null || reading.receivedAtMillis - last.receivedAtMillis > SAME_RESULT_WINDOW_MS ||
                     abs(last.weightKg - reading.weightKg) >= 0.05)
+            if (isNewResult) {
+                val raw = device.serviceData.entries.joinToString(" ") { (id, d) -> "0x%04X=${DiagLog.hex(d)}".format(id) }
+                DiagLog.add("체중 측정 완료 %.2f kg (${device.address} $raw)".format(reading.weightKg))
+            }
             current.copy(
                 live = reading,
                 results = if (isNewResult) (listOf(reading) + current.results).take(MAX_RESULTS) else current.results,

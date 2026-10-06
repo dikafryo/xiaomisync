@@ -3,6 +3,7 @@ package kr.xiaomisync.kettle
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kr.xiaomisync.ble.DiagLog
 import kr.xiaomisync.ble.BleException
 import kr.xiaomisync.ble.DeviceFinder
 import kr.xiaomisync.ble.FoundDevice
@@ -125,6 +126,7 @@ class KettleViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun showError(text: String) {
+        DiagLog.add("화면 안내(오류): $text")
         _state.update { it.copy(message = KettleMessage(text, isError = true)) }
     }
 

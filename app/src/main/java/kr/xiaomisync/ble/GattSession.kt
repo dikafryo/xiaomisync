@@ -60,9 +60,11 @@ class GattSession(
      * 실패하면 연결을 정리하고 잠시 뒤 한 번 더 시도한다.
      */
     suspend fun connect() {
+        DiagLog.add("연결 시도 ${device.address}")
         try {
             connectOnce()
         } catch (first: BleException) {
+            DiagLog.add("연결 실패 → 다시 시도: ${first.message}")
             releaseGatt()
             delay(RETRY_DELAY_MS)
             connectOnce()
@@ -76,6 +78,17 @@ class GattSession(
         }
     }
 
+    /** 요청 한 건을 진단 로그에 남기고, 실패하면 이유도 남긴다 */
+    private suspend fun <T> logged(what: String, block: suspend () -> T): T {
+        DiagLog.add(what)
+        return try {
+            block()
+        } catch (e: BleException) {
+            DiagLog.add("  실패: ${e.message}")
+            throw e
+        }
+    }
+
     private fun releaseGatt() {
         gatt?.disconnect()
         gatt?.close()
@@ -85,15 +98,21 @@ class GattSession(
 
     suspend fun read(uuid: UUID): ByteArray {
         val characteristic = findCharacteristic(uuid)
-        return runOperation(OPERATION_TIMEOUT_MS, "기기에서 값을 읽지 못했습니다.") {
-            requireGatt().readCharacteristic(characteristic)
+        val value = logged("읽기 ${DiagLog.shortUuid(uuid)}") {
+            runOperation(OPERATION_TIMEOUT_MS, "기기에서 값을 읽지 못했습니다.") {
+                requireGatt().readCharacteristic(characteristic)
+            }
         }
+        DiagLog.add("  ← ${DiagLog.hex(value)}")
+        return value
     }
 
     suspend fun write(uuid: UUID, data: ByteArray) {
         val characteristic = findCharacteristic(uuid)
-        runOperation(OPERATION_TIMEOUT_MS, "기기에 값을 쓰지 못했습니다.") {
-            writeCharacteristicCompat(characteristic, data)
+        logged("쓰기 ${DiagLog.shortUuid(uuid)} → ${DiagLog.hex(data)}") {
+            runOperation(OPERATION_TIMEOUT_MS, "기기에 값을 쓰지 못했습니다.") {
+                writeCharacteristicCompat(characteristic, data)
+            }
         }
     }
 
@@ -106,8 +125,10 @@ class GattSession(
         if (!requireGatt().setCharacteristicNotification(characteristic, true)) {
             throw BleException("실시간 값 전송을 켜지 못했습니다.")
         }
-        runOperation(OPERATION_TIMEOUT_MS, "실시간 값 전송을 켜지 못했습니다.") {
-            writeDescriptorCompat(descriptor, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+        logged("알림 켜기 ${DiagLog.shortUuid(uuid)}") {
+            runOperation(OPERATION_TIMEOUT_MS, "실시간 값 전송을 켜지 못했습니다.") {
+                writeDescriptorCompat(descriptor, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+            }
         }
     }
 
@@ -119,7 +140,7 @@ class GattSession(
         requireGatt().getService(serviceUuid)?.characteristics
             ?.firstOrNull { ((it.uuid.mostSignificantBits ushr 32).toInt() and 0xFFFF) == shortId }
             ?.uuid
-            ?: throw BleException("이 기기에서 필요한 기능을 찾지 못했습니다. 선택한 기기 종류가 맞는지 확인해 주세요.")
+            ?: throw missingFeature("서비스 ${DiagLog.shortUuid(serviceUuid)} 안에 0x%04X 없음".format(shortId))
 
     fun close() {
         pending?.completeExceptionally(BleException("연결을 끊었습니다."))
@@ -152,7 +173,12 @@ class GattSession(
         requireGatt().services
             .flatMap { it.characteristics }
             .firstOrNull { it.uuid == uuid }
-            ?: throw BleException("이 기기에서 필요한 기능을 찾지 못했습니다. 선택한 기기 종류가 맞는지 확인해 주세요.")
+            ?: throw missingFeature("특성 ${DiagLog.shortUuid(uuid)} 없음")
+
+    private fun missingFeature(detail: String): BleException {
+        DiagLog.add("오류: $detail")
+        return BleException("이 기기에서 필요한 기능을 찾지 못했습니다. 선택한 기기 종류가 맞는지 확인해 주세요.")
+    }
 
     // 안드로이드 13(API 33)부터 쓰기 함수가 바뀌어서 버전에 따라 나눠 호출한다
     @Suppress("DEPRECATION")
@@ -188,6 +214,7 @@ class GattSession(
 
     private val callback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+            DiagLog.add("연결 상태: ${if (newState == BluetoothProfile.STATE_CONNECTED) "연결됨" else "끊김"} (status=$status)")
             if (newState == BluetoothProfile.STATE_CONNECTED && status == BluetoothGatt.GATT_SUCCESS) {
                 // 연결만으로는 기능 목록을 모르므로, 기능 목록까지 받은 뒤에 '연결 완료'로 본다
                 if (!gatt.discoverServices()) {
@@ -202,6 +229,13 @@ class GattSession(
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+            DiagLog.add("기능 목록 (status=$status)")
+            gatt.services.forEach { service ->
+                DiagLog.add("  서비스 ${DiagLog.shortUuid(service.uuid)}")
+                service.characteristics.forEach { ch ->
+                    DiagLog.add("    특성 ${DiagLog.shortUuid(ch.uuid)} 속성=0x%02X".format(ch.properties))
+                }
+            }
             if (status == BluetoothGatt.GATT_SUCCESS) _connected.value = true
             finishPending(status, ByteArray(0), "기기의 기능 목록을 읽지 못했습니다.")
         }
@@ -249,6 +283,7 @@ class GattSession(
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray,
         ) {
+            DiagLog.add("알림 ${DiagLog.shortUuid(characteristic.uuid)} ← ${DiagLog.hex(value)}")
             _notifications.tryEmit(BleNotification(characteristic.uuid, value))
         }
 
@@ -260,6 +295,7 @@ class GattSession(
             characteristic: BluetoothGattCharacteristic,
         ) {
             val value = characteristic.value ?: return
+            DiagLog.add("알림 ${DiagLog.shortUuid(characteristic.uuid)} ← ${DiagLog.hex(value)}")
             _notifications.tryEmit(BleNotification(characteristic.uuid, value.copyOf()))
         }
     }

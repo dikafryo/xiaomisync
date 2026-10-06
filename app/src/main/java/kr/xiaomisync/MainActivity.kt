@@ -26,6 +26,7 @@ import kr.xiaomisync.scale.ScaleViewModel
 import kr.xiaomisync.thermo.ThermoScreen
 import kr.xiaomisync.thermo.ThermoViewModel
 import kr.xiaomisync.ui.DeviceSelectScreen
+import kr.xiaomisync.ui.DiagScreen
 import kr.xiaomisync.ui.Tokens
 import kr.xiaomisync.ui.XiaomiSyncTheme
 
@@ -48,10 +49,16 @@ class MainActivity : ComponentActivity() {
 private fun AppNavigation() {
     // 화면을 돌려도 선택이 유지되도록 이름(문자열)으로 저장
     var selectedName by rememberSaveable { mutableStateOf<String?>(null) }
+    var showDiag by rememberSaveable { mutableStateOf(false) }
     val selected = selectedName?.let { DeviceType.valueOf(it) }
 
+    if (showDiag) {
+        BackHandler { showDiag = false }
+        DiagScreen(onBack = { showDiag = false })
+        return
+    }
     if (selected == null) {
-        DeviceSelectScreen(onSelect = { selectedName = it.name })
+        DeviceSelectScreen(onSelect = { selectedName = it.name }, onOpenDiag = { showDiag = true })
         return
     }
     DeviceScreen(type = selected, onBack = { selectedName = null })

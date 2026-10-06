@@ -33,7 +33,7 @@ import kr.xiaomisync.device.DeviceType
 
 /** 앱을 켜면 가장 먼저 나오는 화면: 기기 그림을 보고 연결할 기기를 고른다 (2열) */
 @Composable
-fun DeviceSelectScreen(onSelect: (DeviceType) -> Unit) {
+fun DeviceSelectScreen(onSelect: (DeviceType) -> Unit, onOpenDiag: () -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
@@ -64,6 +64,9 @@ fun DeviceSelectScreen(onSelect: (DeviceType) -> Unit) {
                 "· 모델명은 기기 뒷면이나 상자에 적혀 있습니다.\n· '준비 중' 기기는 이후 업데이트에서 추가됩니다.\n· Mi Home 앱이 같은 기기에 연결되어 있으면 연결이 안 될 수 있으니 먼저 닫아 주세요.",
                 style = SubStyle,
             )
+        }
+        fullWidth {
+            SecondaryButton(text = "진단 로그 보기", onClick = onOpenDiag)
         }
     }
 }

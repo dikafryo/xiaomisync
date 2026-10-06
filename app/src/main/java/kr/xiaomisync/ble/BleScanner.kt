@@ -46,6 +46,8 @@ object BlePermissions {
 class BleScanner(context: Context) {
     private val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter
     private var callback: ScanCallback? = null
+    /** 이번 찾기에서 이미 진단 로그에 남긴 기기 (같은 기기를 수백 번 남기지 않으려고) */
+    private val logged = mutableSetOf<String>()
 
     /** 찾기를 시작한다. 시작할 수 없으면 사용자에게 보여줄 이유를 돌려준다. */
     fun start(onFound: (FoundDevice) -> Unit, onFailed: () -> Unit): String? {
@@ -55,12 +57,15 @@ class BleScanner(context: Context) {
             ?: return "블루투스를 준비하지 못했습니다. 잠시 후 다시 눌러 주세요."
 
         stop()
+        logged.clear()
+        DiagLog.add("기기 찾기 시작")
         val newCallback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 toFoundDevice(result)?.let(onFound)
             }
 
             override fun onScanFailed(errorCode: Int) {
+                DiagLog.add("기기 찾기 실패 (errorCode=$errorCode)")
                 onFailed()
             }
         }
@@ -92,6 +97,11 @@ class BleScanner(context: Context) {
             ?: return null
         val serviceData = result.scanRecord?.serviceData.orEmpty()
             .mapKeys { (uuid, _) -> (uuid.uuid.mostSignificantBits ushr 32).toInt() and 0xFFFF }
+        if (logged.add(result.device.address)) {
+            val ids = serviceData.keys.joinToString(",") { "0x%04X".format(it) }.ifEmpty { "-" }
+            val product = productId?.let { "0x%04X".format(it) } ?: "-"
+            DiagLog.add("찾음 \"$name\" ${result.device.address} 신호 ${result.rssi} 제품 $product 서비스데이터 $ids")
+        }
         return FoundDevice(name, result.device.address, result.rssi, result.device, productId, serviceData)
     }
 

@@ -6,6 +6,8 @@ Mi Home 앱 없이 블루투스로 샤오미 기기에 바로 연결하는 안�
 - **LYWSDCGQ/01ZM 블루투스 온습도계(둥근형, 이름 `MJ_HT_V1`)** (실시간 온도/습도, 연결 중 최저/최고, 배터리) — 프로토콜 참고 https://github.com/ratcashdev/mitemp
 - **MHO-C303 전자잉크 시계** (LYWSD02 와 같은 명령: 시간 맞추기, 온도/습도, 온도 단위 — 없는 항목은 건너뜀)
 - **LYWSD03MMC 블루투스 온습도계 2** (실시간 온도/습도, 연결 중 최저/최고, 전압으로 계산한 배터리) — 순정 펌웨어 기준, 참고 https://github.com/JsBergbau/MiTemperature2
+- **YM-K1501 스마트 전기주전자** (물 온도·상태, 보온 온도/방식/시간 설정 — 끓이기·보온 시작은 본체 버튼만 가능). 샤오미 인증 필요, 참고 https://github.com/aprosvetova/xiaomi-kettle , https://github.com/drndos/mikettle
+- **XMTZC 미 체중계** (연결 없이 광고 0x181D/0x181B 에서 체중 읽기), 해석은 openScale 참고 https://github.com/oliexdev/openScale
 - 기기 찾기는 블루투스 이름 또는 샤오미 광고(MiBeacon 0xFE95)의 제품 번호로 한다 → 이름 없이 광고하는 신형(LYWSD02MMC 등)도 목록에 나온다
 
 ## 다운로드

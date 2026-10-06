@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- YM-K1501 스마트 전기주전자: 흰 원통형 몸체 + 손잡이 + 받침대 (기기 선택 화면용 일러스트, 실제 제품 사진 아님. 생성: 직접 그린 벡터) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <path
+        android:fillColor="#E3E6EA"
+        android:pathData="M29,94h66a5,5 0,0 1,5,5v2a5,5 0,0 1,-5,5h-66a5,5 0,0 1,-5,-5v-2a5,5 0,0 1,5,-5z" />
+    <path
+        android:fillColor="#F1F3F5"
+        android:strokeColor="#C3C9D1"
+        android:strokeWidth="1.5"
+        android:pathData="M27,91h66a5,5 0,0 1,5,5v2a5,5 0,0 1,-5,5h-66a5,5 0,0 1,-5,-5v-2a5,5 0,0 1,5,-5z" />
+    <path
+        android:fillColor="#FBFBFB"
+        android:strokeColor="#D3D8DE"
+        android:strokeWidth="1.5"
+        android:pathData="M36,26h40l5,64h-50z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#C3C9D1"
+        android:strokeWidth="6"
+        android:pathData="M80,36h8a8,8 0,0 1,8 8v26a8,8 0,0 1,-8 8h-5" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FBFBFB"
+        android:strokeWidth="3"
+        android:pathData="M80,36h8a8,8 0,0 1,8 8v26a8,8 0,0 1,-8 8h-5" />
+    <path
+        android:fillColor="#EEF0F2"
+        android:strokeColor="#C3C9D1"
+        android:strokeWidth="1.5"
+        android:pathData="M37,20h38a4,4 0,0 1,4,4v1a4,4 0,0 1,-4,4h-38a4,4 0,0 1,-4,-4v-1a4,4 0,0 1,4,-4z" />
+    <path
+        android:fillColor="#C3C9D1"
+        android:pathData="M53,15h6a3,3 0,0 1,3,3v0a3,3 0,0 1,-3,3h-6a3,3 0,0 1,-3,-3v0a3,3 0,0 1,3,-3z" />
+    <path
+        android:fillColor="#D3D8DE"
+        android:pathData="M33,26l-6,-3l1,6z" />
+    <path
+        android:fillColor="#7FB8E6"
+        android:pathData="M47,76h18a2,2 0,0 1,2,2v0a2,2 0,0 1,-2,2h-18a2,2 0,0 1,-2,-2v0a2,2 0,0 1,2,-2z" />
+</vector>

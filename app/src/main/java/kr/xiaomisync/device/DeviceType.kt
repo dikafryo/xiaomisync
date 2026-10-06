@@ -23,6 +23,8 @@ enum class DeviceType(
     val advertisedNamePrefix: String,
     /** 샤오미 광고(MiBeacon)의 제품 번호. 이름 없이 광고하는 기기도 이 번호로 알아본다 (출처: Bluetooth-Devices/xiaomi-ble devices.py) */
     val productIds: Set<Int>,
+    /** 이 서비스 데이터를 광고하면 이 기기로 본다 (연결 없이 광고만 읽는 체중계용, 16비트 서비스 번호) */
+    val serviceDataIds: Set<Int> = emptySet(),
 ) {
     LYWSD02(
         displayName = "블루투스 디지털 시계",
@@ -60,18 +62,30 @@ enum class DeviceType(
         advertisedNamePrefix = "MHO-C303",
         productIds = setOf(0x06D3),
     ),
+    KETTLE(
+        displayName = "스마트 전기주전자",
+        model = "YM-K1501",
+        description = "물 온도·상태 보기 · 보온 온도/시간 설정",
+        available = true,
+        imageRes = R.drawable.device_kettle,
+        advertisedNamePrefix = "MiKettle",
+        productIds = setOf(131, 275),
+    ),
     MI_SCALE(
         displayName = "체중계",
         model = "XMTZC",
-        description = "체중 기록 읽기",
-        available = false,
+        description = "올라서면 체중 자동 측정 (연결 불필요)",
+        available = true,
         imageRes = R.drawable.device_mi_scale,
         advertisedNamePrefix = "MI SCALE",
         productIds = emptySet(),
+        serviceDataIds = setOf(0x181D, 0x181B), // 미 체중계 1 / 체성분 체중계
     );
 
     fun matches(found: FoundDevice): Boolean =
-        found.name.startsWith(advertisedNamePrefix, ignoreCase = true) || found.productId in productIds
+        found.name.startsWith(advertisedNamePrefix, ignoreCase = true) ||
+            found.productId in productIds ||
+            found.serviceData.keys.any { it in serviceDataIds }
 
     /** 같은 종류 안에서 신형 모델이면 화면에 알려 줄 이름 (예: LYWSD02MMC) */
     fun variantName(found: FoundDevice): String? = when (found.productId) {

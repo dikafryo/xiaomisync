@@ -23,6 +23,8 @@ data class FoundDevice(
     val rssi: Int,
     val device: BluetoothDevice,
     val productId: Int? = null,
+    /** 광고에 실린 서비스 데이터 (체중계처럼 연결 없이 광고만 읽는 기기용). 키는 16비트 서비스 번호 */
+    val serviceData: Map<Int, ByteArray> = emptyMap(),
 )
 
 /** 안드로이드 버전마다 필요한 블루투스 권한이 달라서 한 곳에 모아 둔다 */
@@ -88,7 +90,9 @@ class BleScanner(context: Context) {
             ?: result.device.name
             ?: productId?.let { "샤오미 기기 (제품 0x%04X)".format(it) }
             ?: return null
-        return FoundDevice(name, result.device.address, result.rssi, result.device, productId)
+        val serviceData = result.scanRecord?.serviceData.orEmpty()
+            .mapKeys { (uuid, _) -> (uuid.uuid.mostSignificantBits ushr 32).toInt() and 0xFFFF }
+        return FoundDevice(name, result.device.address, result.rssi, result.device, productId, serviceData)
     }
 
     /** MiBeacon: 서비스 데이터 0xFE95 = 프레임 제어(2바이트) + 제품 번호(2바이트, 리틀 엔디언) + … */

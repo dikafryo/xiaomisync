@@ -100,6 +100,20 @@ def lywsdcgq():
     b += path("M67,67.6a0.8,0.8 0,1 0,0.01 0zM70,76.4a0.8,0.8 0,1 0,0.01 0zM66.6,77.6l3.6,-9.4", INK, INK, 0.5)  # %
     return vector("LYWSDCGQ/01ZM 블루투스 온습도계: 둥근 흰 몸체 LCD, 큰 온도 + 작은 습도", b)
 
+def kettle():
+    # 실물 모습: 흰 원통형 몸체(아래가 살짝 넓음) + 오른쪽 손잡이 + 위 뚜껑 + 아래 받침대
+    none = "#00000000"
+    b = path(rrect(24, 94, 76, 12, 5), SHADOW)                            # 받침대 그림자
+    b += path(rrect(22, 91, 76, 12, 5), "#F1F3F5", "#C3C9D1", 1.5)       # 받침대
+    b += path("M36,26h40l5,64h-50z", "#FBFBFB", "#D3D8DE", 1.5)          # 몸체 (사다리꼴)
+    b += path("M80,36h8a8,8 0,0 1,8 8v26a8,8 0,0 1,-8 8h-5", none, "#C3C9D1", 6)  # 손잡이
+    b += path("M80,36h8a8,8 0,0 1,8 8v26a8,8 0,0 1,-8 8h-5", none, "#FBFBFB", 3)
+    b += path(rrect(33, 20, 46, 9, 4), "#EEF0F2", "#C3C9D1", 1.5)         # 뚜껑
+    b += path(rrect(50, 15, 12, 6, 3), "#C3C9D1")                         # 뚜껑 손잡이
+    b += path("M33,26l-6,-3l1,6z", "#D3D8DE")                             # 따르는 입
+    b += path(rrect(45, 76, 22, 4, 2), "#7FB8E6")                         # 아래 푸른 표시등
+    return vector("YM-K1501 스마트 전기주전자: 흰 원통형 몸체 + 손잡이 + 받침대", b)
+
 def lywsd03():
     b = path(rrect(29, 29, 66, 66, 10), SHADOW)
     b += path(rrect(26, 25, 66, 66, 10), BODY, EDGE)                   # 작은 정사각 몸체
@@ -147,7 +161,7 @@ def to_svg(android_xml):
 android_dir = sys.argv[1]
 svg_dir = sys.argv[2] if len(sys.argv) > 2 else None
 for name, fn in [("device_lywsd02", lywsd02), ("device_lywsdcgq", lywsdcgq), ("device_lywsd03mmc", lywsd03),
-                 ("device_mho_c303", mho_c303), ("device_mi_scale", scale)]:
+                 ("device_mho_c303", mho_c303), ("device_mi_scale", scale), ("device_kettle", kettle)]:
     xml = fn()
     with open(os.path.join(android_dir, name + ".xml"), "w", encoding="utf-8") as f:
         f.write(xml)

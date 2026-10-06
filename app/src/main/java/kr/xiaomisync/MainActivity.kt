@@ -19,6 +19,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.xiaomisync.device.DeviceType
 import kr.xiaomisync.clock.ClockScreen
 import kr.xiaomisync.clock.ClockViewModel
+import kr.xiaomisync.kettle.KettleScreen
+import kr.xiaomisync.kettle.KettleViewModel
+import kr.xiaomisync.scale.ScaleScreen
+import kr.xiaomisync.scale.ScaleViewModel
 import kr.xiaomisync.thermo.ThermoScreen
 import kr.xiaomisync.thermo.ThermoViewModel
 import kr.xiaomisync.ui.DeviceSelectScreen
@@ -83,6 +87,25 @@ private fun DeviceScreen(type: DeviceType, onBack: () -> Unit) {
             }
             BackHandler(onBack = leave)
             ThermoScreen(type = type, viewModel = thermoViewModel, onBack = leave)
+        }
+        DeviceType.KETTLE -> {
+            val kettleViewModel: KettleViewModel = viewModel()
+            val leave = {
+                kettleViewModel.stopScan()
+                kettleViewModel.disconnect()
+                onBack()
+            }
+            BackHandler(onBack = leave)
+            KettleScreen(viewModel = kettleViewModel, onBack = leave)
+        }
+        DeviceType.MI_SCALE -> {
+            val scaleViewModel: ScaleViewModel = viewModel()
+            val leave = {
+                scaleViewModel.stopListening()
+                onBack()
+            }
+            BackHandler(onBack = leave)
+            ScaleScreen(viewModel = scaleViewModel, onBack = leave)
         }
         // 아직 '준비 중'인 기기는 선택 화면에서 누를 수 없다
         else -> LaunchedEffect(type) { onBack() }

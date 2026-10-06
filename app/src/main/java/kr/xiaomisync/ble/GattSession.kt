@@ -111,6 +111,16 @@ class GattSession(
         }
     }
 
+    /**
+     * 서비스 [serviceUuid] 안에서 16비트 번호(예: 0xAA02)가 [shortId] 인 특성의 전체 UUID.
+     * 기본 UUID 가 아닌 사설 바탕 UUID 를 쓰는 기기(주전자 등)에서 특성을 번호로 찾을 때 쓴다.
+     */
+    fun characteristicUuid(serviceUuid: UUID, shortId: Int): UUID =
+        requireGatt().getService(serviceUuid)?.characteristics
+            ?.firstOrNull { ((it.uuid.mostSignificantBits ushr 32).toInt() and 0xFFFF) == shortId }
+            ?.uuid
+            ?: throw BleException("이 기기에서 필요한 기능을 찾지 못했습니다. 선택한 기기 종류가 맞는지 확인해 주세요.")
+
     fun close() {
         pending?.completeExceptionally(BleException("연결을 끊었습니다."))
         releaseGatt()

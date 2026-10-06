@@ -18,34 +18,37 @@ log() { echo "[$(date '+%F %T')] $*"; }
 
 [ -f "$KEY_FILE" ] || { log "서명 키가 없습니다: $KEY_FILE"; exit 1; }
 
-RELEASE_JSON=$(curl -fsSL -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/$REPO/releases/latest") || {
-    log "GitHub 최신 릴리스 조회 실패 (릴리스가 아직 없거나 API 제한)"; exit 0; }
-
-# 태그·APK 주소·노트(줄 단위)를 뽑는다
-mapfile -t META < <(python3 -c '
-import json, sys
-r = json.load(sys.stdin)
-assets = [a for a in r.get("assets", []) if a["name"].endswith("-unsigned.apk")]
-print(r["tag_name"])
-print(assets[0]["browser_download_url"] if assets else "")
-for line in (r.get("body") or "").splitlines():
-    if line.strip():
-        print(line.strip())
-' <<<"$RELEASE_JSON")
-
-TAG=${META[0]}
-URL=${META[1]}
-NOTES=("${META[@]:2}")
+# 최신 태그는 API 대신 releases/latest 리다이렉트로 본다 (비인증 API 는 IP당 시간 60회 한도)
+LATEST_URL=$(curl -fsS -o /dev/null -w '%{redirect_url}' "https://github.com/$REPO/releases/latest") || {
+    log "GitHub 최신 릴리스 확인 실패"; exit 0; }
+TAG=${LATEST_URL##*/tag/}
+[ "$TAG" != "$LATEST_URL" ] || exit 0   # 릴리스가 아직 없음
 VERSION=${TAG#v}
-
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { log "태그 형식이 아님: $TAG"; exit 1; }
-[ -n "$URL" ] || { log "$TAG 에 *-unsigned.apk 가 없습니다 (빌드 중일 수 있음)"; exit 0; }
 
 FILE="xiaomisync-$VERSION.apk"
 if python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if any(r.get("version")==sys.argv[2] for r in d["releases"]) else 1)' \
     "$SITE_DIR/data/releases.json" "$VERSION" 2>/dev/null; then
     exit 0   # 이미 게시됨
 fi
+
+# 새 버전일 때만 API 로 APK 주소·노트(줄 단위)를 가져온다
+RELEASE_JSON=$(curl -fsSL -H 'Accept: application/vnd.github+json' "https://api.github.com/repos/$REPO/releases/tags/$TAG") || {
+    log "$TAG 릴리스 정보 조회 실패 (API 한도일 수 있음, 다음 주기에 재시도)"; exit 0; }
+
+mapfile -t META < <(python3 -c '
+import json, sys
+r = json.load(sys.stdin)
+assets = [a for a in r.get("assets", []) if a["name"].endswith("-unsigned.apk")]
+print(assets[0]["browser_download_url"] if assets else "")
+for line in (r.get("body") or "").splitlines():
+    if line.strip():
+        print(line.strip())
+' <<<"$RELEASE_JSON")
+
+URL=${META[0]}
+NOTES=("${META[@]:1}")
+[ -n "$URL" ] || { log "$TAG 에 *-unsigned.apk 가 없습니다 (빌드 중일 수 있음)"; exit 0; }
 
 log "새 버전 발견: $TAG → 내려받아 서명합니다"
 WORK=$(mktemp -d)

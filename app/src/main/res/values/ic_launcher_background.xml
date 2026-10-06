@@ -1,3 +1,4 @@
 <resources>
-    <color name="ic_launcher_background">#FF6900</color>
+    <!-- neis.me 로고 타일 남색 (앞면: 흰 mi + Toolgrid 마크) -->
+    <color name="ic_launcher_background">#1F2933</color>
 </resources>

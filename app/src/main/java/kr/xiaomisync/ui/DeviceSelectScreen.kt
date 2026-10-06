@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -56,6 +57,9 @@ fun DeviceSelectScreen(onSelect: (DeviceType) -> Unit) {
             DeviceTypeCard(type = type, onClick = { onSelect(type) })
         }
         fullWidth {
+            WishLink()
+        }
+        fullWidth {
             Text(
                 "· 모델명은 기기 뒷면이나 상자에 적혀 있습니다.\n· '준비 중' 기기는 이후 업데이트에서 추가됩니다.\n· Mi Home 앱이 같은 기기에 연결되어 있으면 연결이 안 될 수 있으니 먼저 닫아 주세요.",
                 style = SubStyle,
@@ -63,6 +67,26 @@ fun DeviceSelectScreen(onSelect: (DeviceType) -> Unit) {
         }
     }
 }
+
+/** 연결하고 싶은 기기가 목록에 없을 때: 다운로드 사이트의 요청 방명록으로 보낸다 */
+@Composable
+private fun WishLink() {
+    val uriHandler = LocalUriHandler.current
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button) { uriHandler.openUri(WISH_URL) },
+        shape = RoundedCornerShape(Tokens.radius),
+        color = Tokens.accentSoft,
+    ) {
+        Column(modifier = Modifier.padding(Tokens.gapM), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("원하는 기기가 없나요?", style = SectionStyle)
+            Text("기기 모델명을 남겨 주세요. 요청이 많은 기기부터 추가합니다. 요청 남기기 ›", style = SubStyle.copy(color = Tokens.accent))
+        }
+    }
+}
+
+private const val WISH_URL = "https://device.sw4u.kr/#wish"
 
 /** 2열 격자에서 한 줄을 다 쓰는 항목 (제목·안내문) */
 private fun LazyGridScope.fullWidth(content: @Composable () -> Unit) {

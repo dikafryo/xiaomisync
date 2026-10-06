@@ -1,13 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 앱 아이콘 앞면: 흰 "mi" + i 의 점 자리에 neis.me Toolgrid 마크(2×2, 오른쪽 아래만 주황).
+     바탕은 neis.me 타일 남색(@color/ic_launcher_background). 안전 영역(가운데 66dp) 안에 그린다. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- 둥근 사각형 안에 시계 바늘 모양 -->
+    <!-- 글자 묶음(25~89, 29~81)을 가운데(54,54)로 옮기고 원형 마스크 안전 영역에 들게 줄인다 -->
+    <group
+        android:pivotX="57"
+        android:pivotY="55"
+        android:scaleX="0.86"
+        android:scaleY="0.86"
+        android:translateX="-3"
+        android:translateY="-1">
+    <!-- m -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,30a24,24 0,1 0,0.001 0z" />
+        android:strokeColor="#F5F3EF"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M29,77V55a9,9 0,0 1,18 0V77M47,55a9,9 0,0 1,18 0V77" />
+    <!-- i 기둥 -->
     <path
-        android:fillColor="#FF6900"
-        android:pathData="M52,40h4v15.5l9,5.2l-2,3.4l-11,-6.4z" />
+        android:strokeColor="#F5F3EF"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M79,50V77" />
+    <!-- i 의 점 = neis.me Toolgrid -->
+    <path
+        android:fillColor="#F5F3EF"
+        android:pathData="M72.5,29h5.6v5.6h-5.6zM79.9,29h5.6v5.6h-5.6zM72.5,36.4h5.6v5.6h-5.6z" />
+    <path
+        android:fillColor="#F0A04B"
+        android:pathData="M79.9,36.4h5.6v5.6h-5.6z" />
+    </group>
 </vector>

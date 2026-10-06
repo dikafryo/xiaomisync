@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LYWSDCGQ/01ZM 블루투스 온습도계: 둥근 흰 몸체 LCD, 큰 온도 + 작은 습도 (기기 선택 화면용 일러스트, 실제 제품 사진 아님. 생성: 직접 그린 벡터) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <path
+        android:fillColor="#E3E6EA"
+        android:pathData="M62,21a42,42 0,1 0,0.01 0z" />
+    <path
+        android:fillColor="#FBFBFB"
+        android:strokeColor="#D3D8DE"
+        android:strokeWidth="1.5"
+        android:pathData="M60,18a42,42 0,1 0,0.01 0z" />
+    <path
+        android:fillColor="#E4E7E1"
+        android:pathData="M60,27a33,33 0,1 0,0.01 0z" />
+    <path
+        android:fillColor="#2B3036"
+        android:pathData="M40.4,40.0h5.6v2.2h-5.6zM45.9,42.2h2.2v6.2h-2.2zM40.4,48.4h5.6v2.2h-5.6zM38.1,50.6h2.2v6.2h-2.2zM40.4,56.8h5.6v2.2h-5.6zM53.4,40.0h5.6v2.2h-5.6zM58.9,42.2h2.2v6.2h-2.2zM53.4,48.4h5.6v2.2h-5.6zM58.9,50.6h2.2v6.2h-2.2zM53.4,56.8h5.6v2.2h-5.6zM64.2,56.8h2.2v2.2h-2.2zM70.1,40.0h5.6v2.2h-5.6zM67.9,42.2h2.2v6.2h-2.2zM70.1,48.4h5.6v2.2h-5.6zM75.7,50.6h2.2v6.2h-2.2zM70.1,56.8h5.6v2.2h-5.6z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#2B3036"
+        android:strokeWidth="0.9"
+        android:pathData="M81.5,41.5a1.4,1.4 0,1 0,0.01 0z" />
+    <path
+        android:fillColor="#2B3036"
+        android:pathData="M47.9,68.6h1.6v3.1h-1.6zM49.5,71.7h2.8v1.6h-2.8zM52.3,68.6h1.6v3.1h-1.6zM52.3,73.3h1.6v3.1h-1.6zM57.7,67.0h2.8v1.6h-2.8zM56.1,68.6h1.6v3.1h-1.6zM57.7,71.7h2.8v1.6h-2.8zM60.5,73.3h1.6v3.1h-1.6zM57.7,76.4h2.8v1.6h-2.8z" />
+    <path
+        android:fillColor="#2B3036"
+        android:strokeColor="#2B3036"
+        android:strokeWidth="0.5"
+        android:pathData="M67,67.6a0.8,0.8 0,1 0,0.01 0zM70,76.4a0.8,0.8 0,1 0,0.01 0zM66.6,77.6l3.6,-9.4" />
+</vector>

@@ -18,6 +18,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.xiaomisync.device.DeviceType
 import kr.xiaomisync.lywsd02.Lywsd02Screen
 import kr.xiaomisync.lywsd02.Lywsd02ViewModel
+import kr.xiaomisync.mjht.MjhtScreen
+import kr.xiaomisync.mjht.MjhtViewModel
 import kr.xiaomisync.ui.DeviceSelectScreen
 import kr.xiaomisync.ui.Tokens
 import kr.xiaomisync.ui.XiaomiSyncTheme
@@ -64,6 +66,16 @@ private fun DeviceScreen(type: DeviceType, onBack: () -> Unit) {
             }
             BackHandler(onBack = leave)
             Lywsd02Screen(viewModel = lywsd02ViewModel, onBack = leave)
+        }
+        DeviceType.LYWSDCGQ -> {
+            val mjhtViewModel: MjhtViewModel = viewModel()
+            val leave = {
+                mjhtViewModel.stopScan()
+                mjhtViewModel.disconnect()
+                onBack()
+            }
+            BackHandler(onBack = leave)
+            MjhtScreen(viewModel = mjhtViewModel, onBack = leave)
         }
         // 아직 '준비 중'인 기기는 선택 화면에서 누를 수 없다
         else -> LaunchedEffect(type) { onBack() }

@@ -88,6 +88,18 @@ def lywsd02():
               none, INK, 1)
     return vector("LYWSD02 블루투스 디지털 시계: 얇은 흰 테두리 가로형 전자잉크, 큰 시각 + 습도·온도·표정", b)
 
+def lywsdcgq():
+    # 실물 모습: 지름 약 6.5cm 둥근 흰 몸체, 위쪽 큰 온도 + 아래 작은 습도 LCD, 뒤 받침
+    none = "#00000000"
+    b = path("M62,21a42,42 0,1 0,0.01 0z", SHADOW)                        # 그림자 (오른쪽 아래로 살짝)
+    b += path("M60,18a42,42 0,1 0,0.01 0z", "#FBFBFB", "#D3D8DE", 1.5)   # 둥근 몸체
+    b += path("M60,27a33,33 0,1 0,0.01 0z", EINK)                         # 둥근 LCD
+    b += path(text("23.5", 58, 40, 10, 19, 2.2, 3, True), INK)           # 온도
+    b += path("M81.5,41.5a1.4,1.4 0,1 0,0.01 0z", none, INK, 0.9)          # °
+    b += path(text("45", 55, 67, 6, 11, 1.6, 2.2, True), INK)            # 습도
+    b += path("M67,67.6a0.8,0.8 0,1 0,0.01 0zM70,76.4a0.8,0.8 0,1 0,0.01 0zM66.6,77.6l3.6,-9.4", INK, INK, 0.5)  # %
+    return vector("LYWSDCGQ/01ZM 블루투스 온습도계: 둥근 흰 몸체 LCD, 큰 온도 + 작은 습도", b)
+
 def lywsd03():
     b = path(rrect(29, 29, 66, 66, 10), SHADOW)
     b += path(rrect(26, 25, 66, 66, 10), BODY, EDGE)                   # 작은 정사각 몸체
@@ -134,7 +146,7 @@ def to_svg(android_xml):
 
 android_dir = sys.argv[1]
 svg_dir = sys.argv[2] if len(sys.argv) > 2 else None
-for name, fn in [("device_lywsd02", lywsd02), ("device_lywsd03mmc", lywsd03),
+for name, fn in [("device_lywsd02", lywsd02), ("device_lywsdcgq", lywsdcgq), ("device_lywsd03mmc", lywsd03),
                  ("device_mho_c303", mho_c303), ("device_mi_scale", scale)]:
     xml = fn()
     with open(os.path.join(android_dir, name + ".xml"), "w", encoding="utf-8") as f:

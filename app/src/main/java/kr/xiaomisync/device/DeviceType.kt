@@ -29,6 +29,14 @@ enum class DeviceType(
         imageRes = R.drawable.device_lywsd02,
         advertisedNamePrefix = "LYWSD02",
     ),
+    LYWSDCGQ(
+        displayName = "블루투스 온습도계",
+        model = "LYWSDCGQ/01ZM",
+        description = "실시간 온도/습도 · 최저/최고 · 배터리 확인",
+        available = true,
+        imageRes = R.drawable.device_lywsdcgq,
+        advertisedNamePrefix = "MJ_HT_V1",
+    ),
     LYWSD03MMC(
         displayName = "블루투스 온습도계 2",
         model = "LYWSD03MMC",

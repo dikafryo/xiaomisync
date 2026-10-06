@@ -1,7 +1,9 @@
 # 샤오미 기기 연결 (XiaomiSync)
 
 Mi Home 앱 없이 블루투스로 샤오미 기기에 바로 연결하는 안드로이드 앱입니다.
-현재 지원: **LYWSD02 블루투스 디지털 시계** (시간 맞추기, 온도/습도, 배터리, 온도 단위 바꾸기)
+현재 지원
+- **LYWSD02 블루투스 디지털 시계** (시간 맞추기, 온도/습도, 배터리, 온도 단위 바꾸기)
+- **LYWSDCGQ/01ZM 블루투스 온습도계(둥근형, 이름 `MJ_HT_V1`)** (실시간 온도/습도, 연결 중 최저/최고, 배터리) — 프로토콜 참고 https://github.com/ratcashdev/mitemp
 
 ## 다운로드
 **https://device.sw4u.kr** 에서 최신 APK를 받습니다. 고정 링크: `https://device.sw4u.kr/download/xiaomisync-latest.apk`

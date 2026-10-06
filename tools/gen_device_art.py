@@ -1,4 +1,6 @@
-"""기기 선택 화면용 벡터 일러스트(res/drawable/device_*.xml) 생성. 사용: python3 tools/gen_device_art.py app/src/main/res/drawable
+"""기기 선택 화면용 벡터 일러스트 생성 — 앱(res/drawable/device_*.xml)과 다운로드 페이지(SVG)가 같은 원본을 쓴다.
+사용: python3 tools/gen_device_art.py app/src/main/res/drawable [/var/services/web/sw4u/devide/assets/devices]
+  두 번째 인자를 주면 같은 그림을 웹용 SVG 로도 쓴다.
 7세그먼트 숫자는 사각형으로 그린다. 기기를 추가하면 함수 하나 + 아래 목록 한 줄을 더한다."""
 import sys, os
 
@@ -108,9 +110,27 @@ def scale():
     b += path("M88,58c-3,-4 -9,-4 -11,2c-1,6 1,20 6,22c5,1 8,-10 5,-24z", SHADOW)    # 오른발 자리
     return vector("XMTZC 체중계: 위에서 본 정사각 발판 + 숫자 표시창", b)
 
-out = sys.argv[1]
+def to_svg(android_xml):
+    """안드로이드 vector XML(이 파일이 만든 것) → 같은 모양의 SVG"""
+    import re
+    comment = re.search(r"<!-- (.*?) -->", android_xml).group(1)
+    body = ""
+    for m in re.finditer(r"<path(.*?)/>", android_xml, re.S):
+        a = dict(re.findall(r'android:(\w+)="([^"]*)"', m.group(1)))
+        stroke = f' stroke="{a["strokeColor"]}" stroke-width="{a["strokeWidth"]}"' if "strokeColor" in a else ""
+        body += f'<path fill="{a["fillColor"]}"{stroke} d="{a["pathData"]}"/>'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">'
+            f'<!-- {comment} --><title>{comment.split(":")[0]}</title>{body}</svg>\n')
+
+
+android_dir = sys.argv[1]
+svg_dir = sys.argv[2] if len(sys.argv) > 2 else None
 for name, fn in [("device_lywsd02", lywsd02), ("device_lywsd03mmc", lywsd03),
                  ("device_mho_c303", mho_c303), ("device_mi_scale", scale)]:
-    with open(os.path.join(out, name + ".xml"), "w", encoding="utf-8") as f:
-        f.write(fn())
+    xml = fn()
+    with open(os.path.join(android_dir, name + ".xml"), "w", encoding="utf-8") as f:
+        f.write(xml)
+    if svg_dir:
+        with open(os.path.join(svg_dir, name.removeprefix("device_") + ".svg"), "w", encoding="utf-8") as f:
+            f.write(to_svg(xml))
 print("ok")

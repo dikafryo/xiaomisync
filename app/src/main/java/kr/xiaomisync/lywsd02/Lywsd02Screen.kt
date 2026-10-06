@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kr.xiaomisync.ble.BlePermissions
+import kr.xiaomisync.device.DeviceType
 import kr.xiaomisync.ui.BigValue
 import kr.xiaomisync.ui.BusyRow
 import kr.xiaomisync.ui.DEVICE_FLOW_STEPS
@@ -85,6 +86,7 @@ fun Lywsd02Screen(viewModel: Lywsd02ViewModel, onBack: () -> Unit) {
                 onFindClick = onFindClick,
                 onStopClick = viewModel::stopScan,
                 onConnectClick = viewModel::connect,
+                variantLabel = DeviceType.LYWSD02::variantName,
             )
             Lywsd02Step.CONNECTING -> SectionCard { BusyRow("${state.connectedName}에 연결하는 중… (최대 15초)") }
             Lywsd02Step.CONNECTED -> ConnectedSection(state, viewModel)

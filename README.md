@@ -4,6 +4,8 @@ Mi Home 앱 없이 블루투스로 샤오미 기기에 바로 연결하는 안�
 현재 지원
 - **LYWSD02 블루투스 디지털 시계** (시간 맞추기, 온도/습도, 배터리, 온도 단위 바꾸기)
 - **LYWSDCGQ/01ZM 블루투스 온습도계(둥근형, 이름 `MJ_HT_V1`)** (실시간 온도/습도, 연결 중 최저/최고, 배터리) — 프로토콜 참고 https://github.com/ratcashdev/mitemp
+- **LYWSD03MMC 블루투스 온습도계 2** (실시간 온도/습도, 연결 중 최저/최고, 전압으로 계산한 배터리) — 순정 펌웨어 기준, 참고 https://github.com/JsBergbau/MiTemperature2
+- 기기 찾기는 블루투스 이름 또는 샤오미 광고(MiBeacon 0xFE95)의 제품 번호로 한다 → 이름 없이 광고하는 신형(LYWSD02MMC 등)도 목록에 나온다
 
 ## 다운로드
 **https://device.sw4u.kr** 에서 최신 APK를 받습니다. 고정 링크: `https://device.sw4u.kr/download/xiaomisync-latest.apk`

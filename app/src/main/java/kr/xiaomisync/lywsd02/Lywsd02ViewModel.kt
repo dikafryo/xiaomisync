@@ -85,7 +85,7 @@ class Lywsd02ViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun addFoundDevice(found: FoundDevice) {
-        if (!DeviceType.LYWSD02.matches(found.name)) return
+        if (!DeviceType.LYWSD02.matches(found)) return
         _state.update { current ->
             // 같은 기기는 신호 세기만 새로 고쳐 한 줄로 유지
             val others = current.foundDevices.filterNot { it.address == found.address }
@@ -136,12 +136,19 @@ class Lywsd02ViewModel(app: Application) : AndroidViewModel(app) {
 
     /* ----- ③ 읽기 · 시간 맞추기 ----- */
 
+    /**
+     * 시간 → 배터리 → 단위 → 온습도 순서로 읽는다. 각 값은 읽히는 대로 화면에 바로 반영한다.
+     * 온습도는 알림을 기다려야 해서 가장 잘 실패하므로 마지막에 둔다 — 실패해도 시간 맞추기는 쓸 수 있다.
+     */
     fun refreshAll() = runWithClient("시계 정보를 읽는 중…") { device ->
-        val sensor = device.readSensor()
-        val battery = device.readBattery()
-        val unit = device.readUnit()
         val clock = device.readClock()
-        _state.update { it.copy(sensor = sensor, battery = battery, unit = unit, clock = clock) }
+        _state.update { it.copy(clock = clock) }
+        val battery = device.readBattery()
+        _state.update { it.copy(battery = battery) }
+        val unit = device.readUnit()
+        _state.update { it.copy(unit = unit) }
+        val sensor = device.readSensor()
+        _state.update { it.copy(sensor = sensor) }
     }
 
     fun syncClock() = runWithClient("시간을 맞추는 중…") { device ->

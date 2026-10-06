@@ -1,4 +1,4 @@
-package kr.xiaomisync.mjht
+package kr.xiaomisync.thermo
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kr.xiaomisync.ble.BlePermissions
+import kr.xiaomisync.device.DeviceType
 import kr.xiaomisync.ui.BigValue
 import kr.xiaomisync.ui.BusyRow
 import kr.xiaomisync.ui.DEVICE_FLOW_STEPS
@@ -35,9 +36,9 @@ import kr.xiaomisync.ui.SubStyle
 import kr.xiaomisync.ui.Tokens
 import kr.xiaomisync.ui.batteryLabel
 
-/** LYWSDCGQ/01ZM 둥근 온습도계: 찾기 → 연결 → 실시간 온도·습도 */
+/** 온습도계 공통 화면 (LYWSDCGQ/01ZM, LYWSD03MMC): 찾기 → 연결 → 실시간 온도·습도 */
 @Composable
-fun MjhtScreen(viewModel: MjhtViewModel, onBack: () -> Unit) {
+fun ThermoScreen(type: DeviceType, viewModel: ThermoViewModel, onBack: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
@@ -61,13 +62,13 @@ fun MjhtScreen(viewModel: MjhtViewModel, onBack: () -> Unit) {
             .padding(Tokens.gapM),
         verticalArrangement = Arrangement.spacedBy(Tokens.gapM),
     ) {
-        DeviceHeader(title = "블루투스 온습도계", model = "LYWSDCGQ/01ZM", onBack = onBack)
-        StepIndicator(steps = DEVICE_FLOW_STEPS, currentIndex = if (state.step == MjhtStep.CONNECTED) 2 else 1)
+        DeviceHeader(title = type.displayName, model = type.model, onBack = onBack)
+        StepIndicator(steps = DEVICE_FLOW_STEPS, currentIndex = if (state.step == ThermoStep.CONNECTED) 2 else 1)
         state.message?.let {
             MessageBanner(text = it.text, isError = it.isError, onClose = viewModel::dismissMessage)
         }
         when (state.step) {
-            MjhtStep.FIND -> FindDeviceSection(
+            ThermoStep.FIND -> FindDeviceSection(
                 noun = "온습도계",
                 scanning = state.scanning,
                 foundDevices = state.foundDevices,
@@ -75,14 +76,14 @@ fun MjhtScreen(viewModel: MjhtViewModel, onBack: () -> Unit) {
                 onStopClick = viewModel::stopScan,
                 onConnectClick = viewModel::connect,
             )
-            MjhtStep.CONNECTING -> SectionCard { BusyRow("${state.connectedName}에 연결하는 중… (최대 15초)") }
-            MjhtStep.CONNECTED -> ConnectedSection(state, viewModel)
+            ThermoStep.CONNECTING -> SectionCard { BusyRow("${state.connectedName}에 연결하는 중… (최대 15초)") }
+            ThermoStep.CONNECTED -> ConnectedSection(state, viewModel)
         }
     }
 }
 
 @Composable
-private fun ConnectedSection(state: MjhtUiState, viewModel: MjhtViewModel) {
+private fun ConnectedSection(state: ThermoUiState, viewModel: ThermoViewModel) {
     val isBusy = state.busyText != null
 
     SectionCard {
@@ -109,7 +110,7 @@ private fun ConnectedSection(state: MjhtUiState, viewModel: MjhtViewModel) {
 
     SectionCard {
         Text("기기 정보", style = SectionStyle)
-        LabeledValue("배터리 (AAA 건전지)", batteryLabel(state.battery))
+        LabeledValue("배터리", batteryLabel(state.battery))
         LabeledValue("펌웨어", state.firmware ?: "–")
     }
 

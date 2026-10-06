@@ -14,12 +14,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.xiaomisync.device.DeviceType
 import kr.xiaomisync.lywsd02.Lywsd02Screen
 import kr.xiaomisync.lywsd02.Lywsd02ViewModel
-import kr.xiaomisync.mjht.MjhtScreen
-import kr.xiaomisync.mjht.MjhtViewModel
+import kr.xiaomisync.thermo.ThermoScreen
+import kr.xiaomisync.thermo.ThermoViewModel
 import kr.xiaomisync.ui.DeviceSelectScreen
 import kr.xiaomisync.ui.Tokens
 import kr.xiaomisync.ui.XiaomiSyncTheme
@@ -67,15 +68,18 @@ private fun DeviceScreen(type: DeviceType, onBack: () -> Unit) {
             BackHandler(onBack = leave)
             Lywsd02Screen(viewModel = lywsd02ViewModel, onBack = leave)
         }
-        DeviceType.LYWSDCGQ -> {
-            val mjhtViewModel: MjhtViewModel = viewModel()
+        // 온습도계는 화면·동작을 함께 쓴다 (기기마다 ViewModel 은 따로 — key 로 구분)
+        DeviceType.LYWSDCGQ, DeviceType.LYWSD03MMC -> {
+            val thermoViewModel: ThermoViewModel = viewModel(key = type.name) {
+                ThermoViewModel(checkNotNull(this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]), type)
+            }
             val leave = {
-                mjhtViewModel.stopScan()
-                mjhtViewModel.disconnect()
+                thermoViewModel.stopScan()
+                thermoViewModel.disconnect()
                 onBack()
             }
             BackHandler(onBack = leave)
-            MjhtScreen(viewModel = mjhtViewModel, onBack = leave)
+            ThermoScreen(type = type, viewModel = thermoViewModel, onBack = leave)
         }
         // 아직 '준비 중'인 기기는 선택 화면에서 누를 수 없다
         else -> LaunchedEffect(type) { onBack() }

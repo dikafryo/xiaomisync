@@ -26,6 +26,7 @@ fun DeviceHeader(title: String, model: String, onBack: () -> Unit) {
 /**
  * ② 기기 찾기: 안내 → 찾기 버튼 → 찾은 기기 목록.
  * [noun] 은 화면에 쓰는 기기 이름 (예: "시계", "온습도계").
+ * [variantLabel] 은 같은 종류 안의 신형 모델 표시 (예: LYWSD02MMC) — 없으면 null.
  */
 @Composable
 fun FindDeviceSection(
@@ -35,6 +36,7 @@ fun FindDeviceSection(
     onFindClick: () -> Unit,
     onStopClick: () -> Unit,
     onConnectClick: (FoundDevice) -> Unit,
+    variantLabel: (FoundDevice) -> String? = { null },
 ) {
     SectionCard {
         Text("$noun 찾기", style = SectionStyle)
@@ -60,16 +62,17 @@ fun FindDeviceSection(
         Text("찾은 $noun ${foundDevices.size}대", style = SectionStyle)
         Text("여러 대가 보이면 신호가 강한(위쪽) 것이 가장 가까운 ${noun}입니다.", style = SubStyle)
         foundDevices.forEach { found ->
-            FoundDeviceRow(found = found, onConnectClick = { onConnectClick(found) })
+            FoundDeviceRow(found = found, variant = variantLabel(found), onConnectClick = { onConnectClick(found) })
         }
     }
 }
 
 @Composable
-private fun FoundDeviceRow(found: FoundDevice, onConnectClick: () -> Unit) {
+private fun FoundDeviceRow(found: FoundDevice, variant: String?, onConnectClick: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
             Text(found.name, style = BodyStyle.copy(fontWeight = FontWeight.SemiBold))
+            variant?.let { Text(it, style = SubStyle.copy(color = Tokens.accent)) }
             Text("${found.address} · 신호 ${signalLabel(found.rssi)}", style = SubStyle)
         }
         SecondaryButton(text = "연결", onClick = onConnectClick)

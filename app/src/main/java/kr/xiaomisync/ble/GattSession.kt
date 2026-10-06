@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
 import android.os.Build
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -54,11 +55,32 @@ class GattSession(
 
     /* ===================== 공개 기능 ===================== */
 
+    /**
+     * 연결 + 기능 목록 읽기. 안드로이드는 첫 연결이 오류 133 으로 바로 끊기는 일이 흔해서
+     * 실패하면 연결을 정리하고 잠시 뒤 한 번 더 시도한다.
+     */
     suspend fun connect() {
+        try {
+            connectOnce()
+        } catch (first: BleException) {
+            releaseGatt()
+            delay(RETRY_DELAY_MS)
+            connectOnce()
+        }
+    }
+
+    private suspend fun connectOnce() {
         runOperation(CONNECT_TIMEOUT_MS, "기기에 연결하지 못했습니다.") {
             gatt = device.connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE)
             gatt != null
         }
+    }
+
+    private fun releaseGatt() {
+        gatt?.disconnect()
+        gatt?.close()
+        gatt = null
+        _connected.value = false
     }
 
     suspend fun read(uuid: UUID): ByteArray {
@@ -91,10 +113,7 @@ class GattSession(
 
     fun close() {
         pending?.completeExceptionally(BleException("연결을 끊었습니다."))
-        gatt?.disconnect()
-        gatt?.close()
-        gatt = null
-        _connected.value = false
+        releaseGatt()
     }
 
     /* ===================== 내부 처리 ===================== */
@@ -238,6 +257,7 @@ class GattSession(
     companion object {
         private const val CONNECT_TIMEOUT_MS = 15_000L
         private const val OPERATION_TIMEOUT_MS = 8_000L
+        private const val RETRY_DELAY_MS = 800L
 
         // 블루투스 표준: 알림 켜기/끄기 설정 칸(Client Characteristic Configuration)
         private val CCC_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")

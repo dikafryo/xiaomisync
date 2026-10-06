@@ -10,13 +10,19 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.ParcelUuid
 
-/** 주변에서 찾은 블루투스 기기 한 대 */
+/**
+ * 주변에서 찾은 블루투스 기기 한 대.
+ * [productId] 는 샤오미 광고(MiBeacon, 서비스 데이터 0xFE95)에 실린 제품 번호 — 이름 없이 광고하는
+ * 신형 기기(예: LYWSD02MMC)도 이 번호로 알아본다. 샤오미 광고가 아니면 null.
+ */
 data class FoundDevice(
     val name: String,
     val address: String,
     val rssi: Int,
     val device: BluetoothDevice,
+    val productId: Int? = null,
 )
 
 /** 안드로이드 버전마다 필요한 블루투스 권한이 달라서 한 곳에 모아 둔다 */
@@ -33,7 +39,7 @@ object BlePermissions {
     }
 }
 
-/** 주변 블루투스 기기 찾기. 결과는 이름이 있는 기기만 [onFound]로 알려 준다. */
+/** 주변 블루투스 기기 찾기. 이름이 있거나 샤오미 광고를 보내는 기기를 [onFound]로 알려 준다. */
 @SuppressLint("MissingPermission") // 화면에서 BlePermissions.hasAll() 확인 후에만 호출
 class BleScanner(context: Context) {
     private val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter
@@ -76,8 +82,23 @@ class BleScanner(context: Context) {
     }
 
     private fun toFoundDevice(result: ScanResult): FoundDevice? {
+        val productId = miBeaconProductId(result)
         // 광고 신호 안의 이름을 먼저 쓴다(기기 객체의 이름은 아직 비어 있을 때가 많다)
-        val name = result.scanRecord?.deviceName ?: result.device.name ?: return null
-        return FoundDevice(name, result.device.address, result.rssi, result.device)
+        val name = result.scanRecord?.deviceName
+            ?: result.device.name
+            ?: productId?.let { "샤오미 기기 (제품 0x%04X)".format(it) }
+            ?: return null
+        return FoundDevice(name, result.device.address, result.rssi, result.device, productId)
+    }
+
+    /** MiBeacon: 서비스 데이터 0xFE95 = 프레임 제어(2바이트) + 제품 번호(2바이트, 리틀 엔디언) + … */
+    private fun miBeaconProductId(result: ScanResult): Int? {
+        val data = result.scanRecord?.getServiceData(MI_SERVICE) ?: return null
+        if (data.size < 4) return null
+        return (data[2].toInt() and 0xFF) or ((data[3].toInt() and 0xFF) shl 8)
+    }
+
+    companion object {
+        private val MI_SERVICE: ParcelUuid = ParcelUuid.fromString("0000fe95-0000-1000-8000-00805f9b34fb")
     }
 }

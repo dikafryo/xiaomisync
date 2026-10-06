@@ -1,4 +1,4 @@
-package kr.xiaomisync.mjht
+package kr.xiaomisync.thermo
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -20,18 +20,18 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 /* ===================== 화면 상태 ===================== */
 
-enum class MjhtStep { FIND, CONNECTING, CONNECTED }
+enum class ThermoStep { FIND, CONNECTING, CONNECTED }
 
-data class MjhtMessage(val text: String, val isError: Boolean)
+data class ThermoMessage(val text: String, val isError: Boolean)
 
-data class MjhtUiState(
-    val step: MjhtStep = MjhtStep.FIND,
+data class ThermoUiState(
+    val step: ThermoStep = ThermoStep.FIND,
     val scanning: Boolean = false,
     val foundDevices: List<FoundDevice> = emptyList(),
     val connectedName: String = "",
     val busyText: String? = null,
-    val message: MjhtMessage? = null,
-    val latest: MjhtReading? = null,
+    val message: ThermoMessage? = null,
+    val latest: ThermoReading? = null,
     /** 이번 연결 동안의 최저·최고 (연결을 끊으면 초기화) */
     val minTemperature: Double? = null,
     val maxTemperature: Double? = null,
@@ -44,16 +44,17 @@ data class MjhtUiState(
 
 /* ===================== 동작 ===================== */
 
-class MjhtViewModel(app: Application) : AndroidViewModel(app) {
+/** 온습도계 공통 화면 상태. [type] 으로 기기를 가리고, 기기별 차이는 [ThermoClient] 구현이 맡는다. */
+class ThermoViewModel(app: Application, private val type: DeviceType) : AndroidViewModel(app) {
 
-    private val _state = MutableStateFlow(MjhtUiState())
-    val state: StateFlow<MjhtUiState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(ThermoUiState())
+    val state: StateFlow<ThermoUiState> = _state.asStateFlow()
 
     private val scanner = BleScanner(app)
     private var scanTimeoutJob: Job? = null
     private var readingJob: Job? = null
     private var session: GattSession? = null
-    private var client: MjhtClient? = null
+    private var client: ThermoClient? = null
 
     /* ----- ① 기기 찾기 ----- */
 
@@ -90,7 +91,7 @@ class MjhtViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun addFoundDevice(found: FoundDevice) {
-        if (!DeviceType.LYWSDCGQ.matches(found.name)) return
+        if (!type.matches(found)) return
         _state.update { current ->
             val others = current.foundDevices.filterNot { it.address == found.address }
             current.copy(foundDevices = (others + found).sortedByDescending { it.rssi })
@@ -101,20 +102,20 @@ class MjhtViewModel(app: Application) : AndroidViewModel(app) {
 
     fun connect(found: FoundDevice) {
         stopScan()
-        _state.update { it.copy(step = MjhtStep.CONNECTING, connectedName = found.name, message = null) }
+        _state.update { it.copy(step = ThermoStep.CONNECTING, connectedName = found.name, message = null) }
         viewModelScope.launch {
             val newSession = GattSession(getApplication(), found.device)
             try {
                 newSession.connect()
             } catch (e: BleException) {
                 newSession.close()
-                _state.update { it.copy(step = MjhtStep.FIND) }
+                _state.update { it.copy(step = ThermoStep.FIND) }
                 showError(e.message ?: "기기에 연결하지 못했습니다.")
                 return@launch
             }
             session = newSession
-            client = MjhtClient(newSession)
-            _state.update { it.copy(step = MjhtStep.CONNECTED) }
+            client = createClient(newSession)
+            _state.update { it.copy(step = ThermoStep.CONNECTED) }
             watchDisconnect(newSession)
             startLiveReadings()
         }
@@ -126,7 +127,7 @@ class MjhtViewModel(app: Application) : AndroidViewModel(app) {
         session?.close()
         session = null
         client = null
-        _state.value = MjhtUiState()
+        _state.value = ThermoUiState()
     }
 
     private fun watchDisconnect(watched: GattSession) {
@@ -150,9 +151,9 @@ class MjhtViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 device.startReadings()
-                val battery = device.readBattery()
+                device.readBattery()?.let { battery -> _state.update { it.copy(battery = battery) } }
                 val firmware = device.readFirmware()
-                _state.update { it.copy(battery = battery, firmware = firmware) }
+                _state.update { it.copy(firmware = firmware) }
                 // 첫 값이 너무 늦으면 안내한다 (보통 2~5초 안에 온다)
                 val first = withTimeoutOrNull(FIRST_READING_TIMEOUT_MS) { state.first { it.latest != null } }
                 if (first == null) {
@@ -166,10 +167,11 @@ class MjhtViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun onReading(reading: MjhtReading) {
+    private fun onReading(reading: ThermoReading) {
         _state.update {
             it.copy(
                 latest = reading,
+                battery = reading.batteryPercent ?: it.battery,
                 minTemperature = minOf(it.minTemperature ?: reading.temperature, reading.temperature),
                 maxTemperature = maxOf(it.maxTemperature ?: reading.temperature, reading.temperature),
                 minHumidity = minOf(it.minHumidity ?: reading.humidity, reading.humidity),
@@ -185,8 +187,8 @@ class MjhtViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(busyText = "배터리를 읽는 중…", message = null) }
         viewModelScope.launch {
             try {
-                val battery = device.readBattery()
-                _state.update { it.copy(battery = battery) }
+                // 값과 함께 배터리가 오는 기기는 따로 읽을 것이 없다 (다음 값이 오면 갱신됨)
+                device.readBattery()?.let { battery -> _state.update { it.copy(battery = battery) } }
             } catch (e: BleException) {
                 showError(e.message ?: "배터리 값을 읽지 못했습니다.")
             } finally {
@@ -200,7 +202,12 @@ class MjhtViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun showError(text: String) {
-        _state.update { it.copy(message = MjhtMessage(text, isError = true)) }
+        _state.update { it.copy(message = ThermoMessage(text, isError = true)) }
+    }
+
+    private fun createClient(session: GattSession): ThermoClient = when (type) {
+        DeviceType.LYWSD03MMC -> Lywsd03Client(session)
+        else -> MjhtClient(session)
     }
 
     override fun onCleared() {

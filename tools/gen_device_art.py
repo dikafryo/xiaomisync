@@ -72,13 +72,21 @@ def vector(comment, body):
 BODY, EDGE, INK, EINK, SHADOW = "#FFFFFF", "#C3C9D1", "#2B3036", "#E4E7E1", "#E3E6EA"
 
 def lywsd02():
-    b = path(rrect(10, 34, 100, 58, 6), SHADOW)                       # 그림자
-    b += path(rrect(8, 30, 100, 58, 6), BODY, EDGE)                    # 가로로 긴 흰 몸체
-    b += path(rrect(15, 36, 86, 46, 3), EINK)                          # 전자잉크 화면
-    b += path(text("12:30", 58, 41, 13, 24, 3, 4, True), INK)                # 큰 시각
-    b += path(text("24.5", 36, 69, 6, 10, 1.5, 2, True), INK)          # 온도
-    b += path(text("45", 82, 69, 6, 10, 1.5, 2, True), INK)            # 습도
-    return vector("LYWSD02 블루투스 디지털 시계: 가로형 전자잉크, 큰 시각 + 온도/습도", b)
+    # 실물 모습: 얇은 흰 테두리의 2:1 가로형 전자잉크, 큰 시각 + 아래 줄 습도%·온도°C·표정 (^_^)
+    none = "#00000000"
+    b = path(rrect(7, 36, 108, 54, 7), SHADOW)                         # 그림자
+    b += path(rrect(6, 33, 108, 54, 7), "#FBFBFB", "#D3D8DE", 1.5)      # 얇은 흰 테두리 몸체
+    b += path(rrect(11, 38, 98, 44, 2), EINK)                          # 전자잉크 화면
+    b += path(text("12:30", 60, 42, 15, 25, 2.2, 4.5, True), INK)      # 큰 시각 (가는 획)
+    b += path(text("36", 27, 72, 4.5, 7, 1.1, 1.5, True), INK)         # 습도
+    b += path("M33,73.2a0.9,0.9 0,1 0,0.01 0zM36,78.2a0.9,0.9 0,1 0,0.01 0zM32.6,79.2l4,-6.6", INK, INK, 0.6)  # %
+    b += path(text("23.5", 59, 72, 4.5, 7, 1.1, 1.5, True), INK)       # 온도
+    b += path("M71,72.6a1,1 0,1 0,0.01 0z", none, INK, 0.6)            # °
+    b += path("M77,73.2a3,3 0,1 0,0 5.6", none, INK, 1.1)              # C
+    b += path("M85,71.6q-1.8,3.4 0,6.8M100,71.6q1.8,3.4 0,6.8"         # ( )
+              "M87,75l1.6,-2.2l1.6,2.2M95,75l1.6,-2.2l1.6,2.2M90.6,77.6h3.8",  # ^ ^ _
+              none, INK, 1)
+    return vector("LYWSD02 블루투스 디지털 시계: 얇은 흰 테두리 가로형 전자잉크, 큰 시각 + 습도·온도·표정", b)
 
 def lywsd03():
     b = path(rrect(29, 29, 66, 66, 10), SHADOW)
@@ -118,7 +126,8 @@ def to_svg(android_xml):
     for m in re.finditer(r"<path(.*?)/>", android_xml, re.S):
         a = dict(re.findall(r'android:(\w+)="([^"]*)"', m.group(1)))
         stroke = f' stroke="{a["strokeColor"]}" stroke-width="{a["strokeWidth"]}"' if "strokeColor" in a else ""
-        body += f'<path fill="{a["fillColor"]}"{stroke} d="{a["pathData"]}"/>'
+        fill = "none" if a["fillColor"] == "#00000000" else a["fillColor"]   # 선만 있는 획
+        body += f'<path fill="{fill}"{stroke} d="{a["pathData"]}"/>'
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">'
             f'<!-- {comment} --><title>{comment.split(":")[0]}</title>{body}</svg>\n')
 

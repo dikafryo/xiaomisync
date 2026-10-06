@@ -1,0 +1,51 @@
+# v1.2.3 태그를 push 하면 서명 안 된 릴리스 APK 를 빌드해 GitHub Release 로 올린다.
+# 서명은 하지 않는다 — vm1 의 tools/sync-release.sh 가 받아서 vm1 키로 서명한 뒤 device.sw4u.kr 에 게시한다.
+# 릴리스 노트 = 태그 메시지의 각 줄 (git tag -a v1.2.3 -m "바뀐 점 1" -m "바뀐 점 2")
+name: release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: 버전 확인
+        id: ver
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          [[ "$VERSION" =~ ^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]] || { echo "태그는 v1.2.3 형식이어야 합니다 (각 자리 0~99): $GITHUB_REF_NAME"; exit 1; }
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: 빌드
+        run: ./gradlew assembleRelease --no-daemon -PappVersion=${{ steps.ver.outputs.version }}
+
+      - name: 릴리스 노트 (태그 메시지)
+        run: |
+          git fetch --force origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
+          git tag -l --format='%(contents)' "$GITHUB_REF_NAME" | sed '/^-----BEGIN/,$d' | sed '/^[[:space:]]*$/d' > notes.txt
+          [ -s notes.txt ] || echo "v${{ steps.ver.outputs.version }}" > notes.txt
+          cat notes.txt
+
+      - name: GitHub Release 생성
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          FILE="xiaomisync-${{ steps.ver.outputs.version }}-unsigned.apk"
+          cp app/build/outputs/apk/release/app-release-unsigned.apk "$FILE"
+          gh release create "$GITHUB_REF_NAME" "$FILE" --title "$GITHUB_REF_NAME" --notes-file notes.txt

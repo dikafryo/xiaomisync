@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 둥근 사각형 안에 시계 바늘 모양 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30a24,24 0,1 0,0.001 0z" />
+    <path
+        android:fillColor="#FF6900"
+        android:pathData="M52,40h4v15.5l9,5.2l-2,3.4l-11,-6.4z" />
+</vector>

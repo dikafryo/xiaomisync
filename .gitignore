@@ -1,0 +1,8 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+_ref/
+*.bak.*
+sync-release.log

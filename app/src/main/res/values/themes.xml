@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.XiaomiSync" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#F5F6F8</item>
+        <item name="android:statusBarColor">#F5F6F8</item>
+        <item name="android:navigationBarColor">#F5F6F8</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

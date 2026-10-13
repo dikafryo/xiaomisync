@@ -10,6 +10,7 @@ import kr.xiaomisync.ble.FoundDevice
 import kr.xiaomisync.ble.GattSession
 import kr.xiaomisync.device.DeviceType
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,6 +39,8 @@ data class ThermoUiState(
     val minHumidity: Double? = null,
     val maxHumidity: Double? = null,
     val readingCount: Int = 0,
+    /** 기기가 연결을 끊어 자동으로 다시 붙은 횟수 */
+    val reconnectCount: Int = 0,
     val battery: Int? = null,
     val firmware: String? = null,
 )
@@ -52,6 +55,11 @@ class ThermoViewModel(app: Application, private val type: DeviceType) : AndroidV
 
     private val finder = DeviceFinder(app, viewModelScope, type)
     private var readingJob: Job? = null
+    private var reconnectJob: Job? = null
+    private var target: FoundDevice? = null
+    /** 다시 붙었는데 값을 하나도 못 받고 또 끊긴 횟수 — 계속 쌓이면 자동 재연결을 멈춘다 */
+    private var dropsWithoutReading = 0
+    private var readingCountAtAttach = 0
     private var session: GattSession? = null
     private var client: ThermoClient? = null
 
@@ -78,51 +86,127 @@ class ThermoViewModel(app: Application, private val type: DeviceType) : AndroidV
 
     fun connect(found: FoundDevice) {
         stopScan()
+        target = found
+        dropsWithoutReading = 0
         _state.update { it.copy(step = ThermoStep.CONNECTING, connectedName = found.name, message = null) }
         viewModelScope.launch {
-            val newSession = GattSession(getApplication(), found.device)
-            try {
-                newSession.connect()
+            val newSession = try {
+                openSession(found)
             } catch (e: BleException) {
-                newSession.close()
                 _state.update { it.copy(step = ThermoStep.FIND) }
                 showError(e.message ?: "기기에 연결하지 못했습니다.")
                 return@launch
             }
-            session = newSession
-            client = createClient(newSession)
+            attach(newSession)
             _state.update { it.copy(step = ThermoStep.CONNECTED) }
-            watchDisconnect(newSession)
-            startLiveReadings()
+            startLiveReadings(initial = true)
         }
     }
 
     fun disconnect() {
+        reconnectJob?.cancel()
+        reconnectJob = null
+        target = null
+        releaseSession()
+        _state.value = ThermoUiState()
+    }
+
+    private suspend fun openSession(found: FoundDevice): GattSession {
+        val newSession = GattSession(getApplication(), found.device)
+        try {
+            newSession.connect()
+        } catch (e: BleException) {
+            newSession.close()
+            throw e
+        }
+        return newSession
+    }
+
+    private fun attach(newSession: GattSession) {
+        session = newSession
+        client = createClient(newSession)
+        readingCountAtAttach = _state.value.readingCount
+        watchDisconnect(newSession)
+    }
+
+    private fun releaseSession() {
         readingJob?.cancel()
         readingJob = null
         session?.close()
         session = null
         client = null
-        _state.value = ThermoUiState()
     }
 
     private fun watchDisconnect(watched: GattSession) {
         viewModelScope.launch {
             watched.connected.first { !it }
             if (session !== watched) return@launch // 사용자가 직접 끊은 경우
-            disconnect()
-            showError("온습도계와 연결이 끊어졌습니다. '기기 찾기 시작'을 눌러 다시 연결해 주세요.")
+            val gotReading = _state.value.readingCount > readingCountAtAttach
+            dropsWithoutReading = if (gotReading) 0 else dropsWithoutReading + 1
+            releaseSession()
+            if (dropsWithoutReading >= MAX_RECONNECT_ATTEMPTS) {
+                giveUp()
+            } else {
+                reconnect()
+            }
         }
+    }
+
+    /**
+     * 온습도계(특히 LYWSDCGQ)는 Mi Home 인증 없이 붙으면 값을 몇 번 보낸 뒤 스스로 연결을 끊는다.
+     * 그래서 끊기면 같은 기기에 조용히 다시 붙어 값 받기를 이어 간다. 최저·최고와 받은 개수는 유지한다.
+     */
+    private fun reconnect() {
+        val found = target ?: return
+        reconnectJob?.cancel()
+        reconnectJob = viewModelScope.launch {
+            _state.update { it.copy(busyText = "기기가 연결을 끊어 다시 연결하는 중…") }
+            repeat(MAX_RECONNECT_ATTEMPTS) { attempt ->
+                delay(RECONNECT_DELAY_MS)
+                val newSession = try {
+                    openSession(found)
+                } catch (e: BleException) {
+                    DiagLog.add("다시 연결 실패 (${attempt + 1}/$MAX_RECONNECT_ATTEMPTS): ${e.message}")
+                    return@repeat
+                }
+                DiagLog.add("다시 연결됨")
+                attach(newSession)
+                _state.update { it.copy(busyText = null, reconnectCount = it.reconnectCount + 1) }
+                startLiveReadings(initial = false)
+                return@launch
+            }
+            giveUp()
+        }
+    }
+
+    private fun giveUp() {
+        disconnect()
+        showError("온습도계와 연결이 끊어졌습니다. 온습도계를 휴대폰 가까이 두고 '기기 찾기 시작'을 눌러 다시 연결해 주세요.")
     }
 
     /* ----- ③ 실시간 값 ----- */
 
-    /** 값 받기를 켜고, 들어오는 값마다 화면과 최저·최고를 갱신한다. 배터리·펌웨어는 한 번 읽는다. */
-    private fun startLiveReadings() {
+    /**
+     * 값 받기를 켜고, 들어오는 값마다 화면과 최저·최고를 갱신한다.
+     * 배터리·펌웨어는 처음 연결할 때만 읽는다 — 다시 붙었을 때는 기기가 또 끊기 전에 값부터 받는다.
+     */
+    private fun startLiveReadings(initial: Boolean) {
         val device = client ?: return
         readingJob?.cancel()
         readingJob = viewModelScope.launch { device.readings.collect(::onReading) }
 
+        if (!initial) {
+            viewModelScope.launch {
+                try {
+                    device.startReadings()
+                } catch (e: BleException) {
+                    DiagLog.add("다시 연결 후 값 받기 켜기 실패: ${e.message}")
+                }
+            }
+            return
+        }
+
+        val owner = session
         _state.update { it.copy(busyText = "온도·습도 값을 기다리는 중…") }
         viewModelScope.launch {
             try {
@@ -136,9 +220,10 @@ class ThermoViewModel(app: Application, private val type: DeviceType) : AndroidV
                     showError("온도·습도 값이 오지 않습니다. '연결 끊기' 후 다시 연결해 주세요.")
                 }
             } catch (e: BleException) {
-                showError(e.message ?: "값 받기를 켜지 못했습니다.")
+                // 도중에 기기가 끊었으면 자동 재연결이 맡으므로 오류를 띄우지 않는다
+                if (session === owner) showError(e.message ?: "값 받기를 켜지 못했습니다.")
             } finally {
-                _state.update { it.copy(busyText = null) }
+                if (session === owner) _state.update { it.copy(busyText = null) }
             }
         }
     }
@@ -194,5 +279,7 @@ class ThermoViewModel(app: Application, private val type: DeviceType) : AndroidV
 
     companion object {
         private const val FIRST_READING_TIMEOUT_MS = 15_000L
+        private const val MAX_RECONNECT_ATTEMPTS = 3
+        private const val RECONNECT_DELAY_MS = 1_000L
     }
 }

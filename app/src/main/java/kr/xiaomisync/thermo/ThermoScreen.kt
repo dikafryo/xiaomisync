@@ -106,6 +106,9 @@ private fun ConnectedSection(state: ThermoUiState, viewModel: ThermoViewModel) {
         LabeledValue("온도", rangeLabel(state.minTemperature, state.maxTemperature, "℃"))
         LabeledValue("습도", rangeLabel(state.minHumidity, state.maxHumidity, "%"))
         Text("받은 값 ${state.readingCount}개 · 연결을 끊으면 처음부터 다시 셉니다.", style = SubStyle)
+        if (state.reconnectCount > 0) {
+            Text("기기가 연결을 끊어 자동으로 다시 연결한 횟수 ${state.reconnectCount}번", style = SubStyle)
+        }
     }
 
     SectionCard {
